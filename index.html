@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#fffdf2" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <title>QDII额度宝 · 咕咕鸡</title>
+  <title>QD鸡 · 咕咕鸡</title>
   <style>
     :root {
       --primary: #fbc02d;
@@ -345,7 +345,7 @@
   <div class="app-container">
     <div class="header">
       <a class="home-link" href="https://guguji.icu">← 返回主页</a>
-      <h1>🐤 QDII 额度监控</h1>
+      <h1>🐤 QD鸡</h1>
       <div class="sub">
         跟踪基金「申购状态 + 单日累计申购上限」（东财口径）。状态/限额变化会记录时间线。</div>
     </div>
@@ -361,11 +361,11 @@
     </div>
 
     <div id="list" class="list"></div>
-    <div id="empty" class="empty" hidden>还没有自选，先添加一只 QDII 基金吧</div>
+    <div id="empty" class="empty" hidden>还没有自选，先添加一只基金到 QD鸡 吧</div>
 
     <div class="footer">
       数据源：东方财富 · 缓存约 60 秒<br/>
-      本页域名：qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.6
+      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.7
     </div>
   </div>
   <div id="toast" class="toast"></div>
@@ -500,37 +500,77 @@
       return n.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
     }
 
-    // 同时显示：最近净值 + 当日估值预估
+    // 同时显示：最近净值 + 当日估值预估（QDII 常无实时估值）
     function formatGzHtml(gz, item) {
       const nav = formatNavNum(gz && !gz.error ? gz.dwjz : null) || formatNavNum(item && item.dwjz);
       const navDate = (gz && (gz.jzrq || "")) || (item && (item.fsrq || "")) || "";
       const gsz = formatNavNum(gz && !gz.error ? gz.gsz : null);
       const pct = gz && !gz.error ? Number(gz.gszzl) : NaN;
       const hasPct = Number.isFinite(pct);
+      const dayPct = item && item.rzdf != null && item.rzdf !== "" ? Number(item.rzdf) : NaN;
+      const hasDay = Number.isFinite(dayPct);
       const cls = !hasPct ? "pending" : (Math.abs(pct) < 0.0005 ? "neutral" : (pct > 0 ? "up" : "down"));
+      const dayCls = !hasDay ? "pending" : (Math.abs(dayPct) < 0.0005 ? "neutral" : (dayPct > 0 ? "up" : "down"));
       const sign = hasPct && pct > 0 ? "+" : "";
+      const daySign = hasDay && dayPct > 0 ? "+" : "";
       const pctText = hasPct ? `${sign}${pct.toFixed(2)}%` : "--";
       const gszTitle = escapeHtml([
         gsz ? `估算净值 ${gsz}` : "",
         gz && gz.gztime ? `估值时间 ${gz.gztime}` : "",
+        !hasPct ? "QDII 常无盘中实时估值" : "",
       ].filter(Boolean).join(" · "));
 
+      let navExtra = "";
+      if (navDate) {
+        navExtra += `<span style="color:#bbb;font-size:11px;margin-left:3px">${escapeHtml(navDate)}</span>`;
+      }
+      if (!hasPct && hasDay) {
+        navExtra += ` <span class="gz ${dayCls}" title="最近公布日涨跌幅">${daySign}${dayPct.toFixed(2)}%</span>`;
+      }
+
       const navHtml = nav
-        ? `<span class="metric" title="${escapeHtml(navDate ? "净值日期 " + navDate : "最近公布净值")}">净值<b>${escapeHtml(nav)}</b>${navDate ? `<span style="color:#bbb;font-size:11px;margin-left:3px">${escapeHtml(navDate)}</span>` : ""}</span>`
+        ? `<span class="metric" title="${escapeHtml(navDate ? "净值日期 " + navDate : "最近公布净值")}">净值<b>${escapeHtml(nav)}</b>${navExtra}</span>`
         : `<span class="metric">净值<b>--</b></span>`;
 
       const gzHtml = (gsz || hasPct)
         ? `<span class="metric" title="${gszTitle}">估值${gsz ? `<b>${escapeHtml(gsz)}</b>` : ""} <span class="gz ${cls}">${pctText}</span></span>`
-        : `<span class="metric">估值 <span class="gz pending">--</span></span>`;
+        : `<span class="metric" title="${gszTitle}">估值 <span class="gz pending">暂无</span></span>`;
 
       return `<div class="metrics">${navHtml}${gzHtml}</div>`;
     }
 
+    async function fetchWithTimeout(url, opts = {}, timeoutMs = 15000) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        return await fetch(url, { ...opts, signal: ctrl.signal, cache: "no-store" });
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    function humanFetchError(e) {
+      if (!e) return "网络错误";
+      if (e.name === "AbortError") return "请求超时";
+      const msg = e.message || String(e);
+      if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) return "网络异常，稍后重试";
+      return msg;
+    }
+
     async function fetchFundGz(code) {
       try {
-        const res = await fetch(`${API_BASE}/api/fundgz/${code}`, { cache: "no-store" });
-        const data = await res.json();
-        if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        const res = await fetchWithTimeout(`${API_BASE}/api/fundgz/${code}`, {}, 10000);
+        const raw = await res.text();
+        let data = null;
+        try {
+          data = raw ? JSON.parse(raw) : null;
+        } catch (_) {
+          // Cloudflare 等可能返回纯文本 502
+          return { error: `no_valuation_http_${res.status}` };
+        }
+        if (!data || !data.ok) {
+          return { error: (data && data.error) || `HTTP ${res.status}` };
+        }
         return {
           gszzl: data.gszzl,
           gsz: data.gsz,
@@ -540,7 +580,7 @@
           channel: data.channel || "",
         };
       } catch (e) {
-        return { error: e.message || String(e) };
+        return { error: humanFetchError(e) };
       }
     }
 
@@ -559,11 +599,30 @@
     async function fetchBatch(codes, refresh = false) {
       const q = new URLSearchParams({ codes: codes.join(",") });
       if (refresh) q.set("refresh", "1");
-      const res = await fetch(`${API_BASE}/api/qdii/batch?${q}`, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error || "batch failed");
-      return data.items || [];
+      const url = `${API_BASE}/api/qdii/batch?${q}`;
+      let lastErr;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const res = await fetchWithTimeout(url, {}, 18000);
+          const raw = await res.text();
+          let data = null;
+          try {
+            data = raw ? JSON.parse(raw) : null;
+          } catch (_) {
+            throw new Error(res.ok ? "响应不是 JSON" : `HTTP ${res.status}`);
+          }
+          if (!res.ok || !data || !data.ok) {
+            throw new Error((data && data.error) || `HTTP ${res.status}`);
+          }
+          return data.items || [];
+        } catch (e) {
+          lastErr = e;
+          if (attempt === 0) {
+            await new Promise((r) => setTimeout(r, 700));
+          }
+        }
+      }
+      throw lastErr;
     }
 
     async function fetchHistory(code) {
@@ -683,17 +742,28 @@
         setStatus("自选为空");
         return;
       }
-      setStatus("刷新中…");
+      setStatus(force ? "刷新中…" : "同步中…");
       $("refreshBtn").disabled = true;
       try {
         const items = await fetchBatch(watchlist, force);
+        // 估值失败不阻断主数据；额度/净值已够用
         await attachValuations(items);
         render(items);
-        setStatus("已更新 " + new Date().toLocaleTimeString(), "ok");
+        const okCount = items.filter((i) => i && i.ok !== false && !i.error).length;
+        const noGz = items.filter((i) => i && i.ok !== false && !i.error && (!i.gz || i.gz.error || !i.gz.gsz)).length;
+        const t = new Date().toLocaleTimeString();
+        if (okCount === 0) {
+          setStatus("刷新失败: 无有效数据", "warn");
+        } else if (noGz > 0) {
+          setStatus(`已更新 ${t}（${noGz} 只暂无实时估值）`, "ok");
+        } else {
+          setStatus("已更新 " + t, "ok");
+        }
       } catch (e) {
-        setStatus("刷新失败: " + e.message, "warn");
-        toast("刷新失败: " + e.message);
-        render(watchlist.map((code) => ({ code, ok: false, error: e.message })));
+        const msg = humanFetchError(e);
+        setStatus("刷新失败: " + msg, "warn");
+        toast("刷新失败: " + msg);
+        render(watchlist.map((code) => ({ code, ok: false, error: msg })));
       } finally {
         $("refreshBtn").disabled = false;
       }
@@ -702,14 +772,17 @@
     async function refreshOne(code) {
       setStatus("刷新 " + code + "…");
       try {
-        const res = await fetch(`${API_BASE}/api/qdii/${code}?refresh=1`, { cache: "no-store" });
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.error || "failed");
+        const res = await fetchWithTimeout(`${API_BASE}/api/qdii/${code}?refresh=1`, {}, 18000);
+        const raw = await res.text();
+        let data = null;
+        try { data = raw ? JSON.parse(raw) : null; } catch (_) { throw new Error(`HTTP ${res.status}`); }
+        if (!data || !data.ok) throw new Error((data && data.error) || "failed");
         await refreshAll(false);
         toast(code + " 已刷新");
       } catch (e) {
-        toast("刷新失败: " + e.message);
-        setStatus("刷新失败", "warn");
+        const msg = humanFetchError(e);
+        toast("刷新失败: " + msg);
+        setStatus("刷新失败: " + msg, "warn");
       }
     }
 

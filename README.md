@@ -1,4 +1,4 @@
-﻿# QDII 额度监控前端
+# QD鸡（QDII 额度监控）前端
 
 静态页：`qdii.guguji.icu`（GitHub Pages，与 `ji.guguji.icu` 同模式）
 
