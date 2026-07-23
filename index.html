@@ -1,0 +1,424 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#0b1220" />
+  <title>QDII额度宝 · guguji</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #121a2b;
+      --card2: #172238;
+      --border: #243049;
+      --text: #e8eefc;
+      --muted: #8b9bb8;
+      --open: #22c55e;
+      --limit: #f59e0b;
+      --paused: #ef4444;
+      --unknown: #64748b;
+      --accent: #38bdf8;
+      --danger: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, #1a2744 0%, var(--bg) 50%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 16px 14px 48px; }
+    header { margin-bottom: 14px; }
+    h1 { font-size: 1.35rem; margin: 0 0 6px; letter-spacing: 0.02em; }
+    .sub { color: var(--muted); font-size: 0.86rem; line-height: 1.5; }
+    .toolbar {
+      display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 12px;
+    }
+    input[type="text"] {
+      flex: 1 1 160px;
+      min-width: 140px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 15px;
+      outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+    }
+    button.secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .meta {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 8px; color: var(--muted); font-size: 12px; margin-bottom: 10px;
+    }
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .card {
+      background: linear-gradient(180deg, var(--card) 0%, #0f1728 100%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 12px 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.22);
+    }
+    .row1 { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+    .name { font-weight: 700; font-size: 15px; line-height: 1.35; }
+    .code { color: var(--muted); font-size: 12px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .badge {
+      flex-shrink: 0;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+    .badge.open { color: #052e16; background: #86efac; }
+    .badge.limit { color: #451a03; background: #fcd34d; }
+    .badge.paused { color: #450a0a; background: #fca5a5; }
+    .badge.unknown { color: #e2e8f0; background: #475569; }
+    .limit-num {
+      margin-top: 10px;
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    .limit-num small { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-left: 4px; }
+    .desc { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.45; }
+    .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .actions button { padding: 7px 10px; font-size: 12px; }
+    .actions button.danger { background: transparent; color: var(--danger); border: 1px solid #7f1d1d; }
+    .history {
+      margin-top: 10px;
+      border-top: 1px dashed var(--border);
+      padding-top: 8px;
+      display: none;
+    }
+    .history.show { display: block; }
+    .history h4 { margin: 0 0 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
+    .history li {
+      list-style: none;
+      font-size: 12px;
+      color: var(--text);
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(36,48,73,.6);
+      line-height: 1.4;
+    }
+    .history ul { margin: 0; padding: 0; }
+    .empty {
+      text-align: center; color: var(--muted); padding: 40px 12px;
+      border: 1px dashed var(--border); border-radius: 14px;
+    }
+    footer {
+      margin-top: 22px; color: var(--muted); font-size: 11px; line-height: 1.6;
+    }
+    footer a { color: var(--accent); }
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+      background: #1e293b; color: white; padding: 10px 14px; border-radius: 10px;
+      font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s;
+      border: 1px solid var(--border); z-index: 20; max-width: 90vw;
+    }
+    .toast.show { opacity: 1; }
+    .err { color: #fca5a5; font-size: 12px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>QDII 额度监控</h1>
+      <div class="sub">
+        跟踪基金「申购状态 + 单日累计申购上限」（东财口径）。状态/限额变化会记录时间线。<br/>
+        非代销渠道剩余库存；仅作提醒工具，不构成投资建议。
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <input id="codeInput" type="text" inputmode="numeric" maxlength="6" placeholder="输入6位基金代码，如 016664" />
+      <button id="addBtn" type="button">添加自选</button>
+      <button id="refreshBtn" class="secondary" type="button">刷新全部</button>
+    </div>
+    <div class="meta">
+      <span id="statusText">准备就绪</span>
+      <span id="apiText"></span>
+    </div>
+    <div id="list" class="list"></div>
+    <div id="empty" class="empty" hidden>还没有自选，先添加一只 QDII 基金吧</div>
+
+    <footer>
+      数据源：东方财富 FundMNBasicInformation（服务端代理 ocr.guguji.icu）· 缓存约 60 秒<br/>
+      估值工具：<a href="https://ji.guguji.icu" target="_blank" rel="noopener">ji.guguji.icu</a>
+      · 本页域名：qdii.guguji.icu · v0.1.0 MVP
+    </footer>
+  </div>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API_BASE = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+      ? "http://127.0.0.1:5000"
+      : "https://ocr.guguji.icu";
+    const STORAGE_KEY = "qdii_watchlist_v1";
+    const DEFAULT_CODES = ["016664", "539002"];
+
+    const $ = (id) => document.getElementById(id);
+    const listEl = $("list");
+    const emptyEl = $("empty");
+    const statusText = $("statusText");
+    const apiText = $("apiText");
+    const toastEl = $("toast");
+
+    apiText.textContent = API_BASE.replace("https://", "");
+
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => toastEl.classList.remove("show"), 2200);
+    }
+
+    function loadWatchlist() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [...DEFAULT_CODES];
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr) || !arr.length) return [...DEFAULT_CODES];
+        return arr.filter((c) => /^\d{6}$/.test(c));
+      } catch {
+        return [...DEFAULT_CODES];
+      }
+    }
+
+    function saveWatchlist(codes) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
+    }
+
+    let watchlist = loadWatchlist();
+    const historyOpen = new Set();
+
+    function formatLimit(amount, norm) {
+      if (norm === "paused") return { main: "暂停申购", unit: "" };
+      if (amount === null || amount === undefined) {
+        if (norm === "open") return { main: "基本开放", unit: "无明确上限" };
+        return { main: "—", unit: "" };
+      }
+      if (amount === 0) return { main: "0", unit: "元" };
+      if (amount >= 10000 && amount % 10000 === 0) {
+        return { main: String(amount / 10000), unit: "万元" };
+      }
+      const n = Number(amount);
+      const s = Number.isInteger(n) ? String(n) : n.toFixed(2);
+      return { main: s, unit: "元" };
+    }
+
+    function badgeClass(norm) {
+      if (norm === "open") return "open";
+      if (norm === "limit") return "limit";
+      if (norm === "paused") return "paused";
+      return "unknown";
+    }
+
+    function badgeText(item) {
+      if (item.sgzt) return item.sgzt;
+      if (item.sgzt_norm === "open") return "开放申购";
+      if (item.sgzt_norm === "limit") return "限大额";
+      if (item.sgzt_norm === "paused") return "暂停申购";
+      return "未知";
+    }
+
+    async function fetchBatch(codes, refresh = false) {
+      const q = new URLSearchParams({ codes: codes.join(",") });
+      if (refresh) q.set("refresh", "1");
+      const res = await fetch(`${API_BASE}/api/qdii/batch?${q}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "batch failed");
+      return data.items || [];
+    }
+
+    async function fetchHistory(code) {
+      const res = await fetch(`${API_BASE}/api/qdii/${code}/history?limit=20`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "history failed");
+      return data.items || [];
+    }
+
+    function render(items) {
+      const map = new Map(items.map((i) => [i.code, i]));
+      listEl.innerHTML = "";
+      emptyEl.hidden = watchlist.length > 0;
+      if (!watchlist.length) return;
+
+      for (const code of watchlist) {
+        const item = map.get(code) || { code, ok: false, error: "无数据" };
+        const card = document.createElement("div");
+        card.className = "card";
+        card.dataset.code = code;
+
+        if (item.error || item.ok === false) {
+          card.innerHTML = `
+            <div class="row1">
+              <div>
+                <div class="name">加载失败</div>
+                <div class="code">${code}</div>
+              </div>
+              <span class="badge unknown">错误</span>
+            </div>
+            <div class="err">${item.error || "unknown error"}</div>
+            <div class="actions">
+              <button type="button" data-act="retry">重试</button>
+              <button type="button" class="danger" data-act="remove">移除</button>
+            </div>`;
+        } else {
+          const lim = formatLimit(item.limit_amount, item.sgzt_norm);
+          const bc = badgeClass(item.sgzt_norm);
+          card.innerHTML = `
+            <div class="row1">
+              <div>
+                <div class="name">${escapeHtml(item.name || "未知基金")}</div>
+                <div class="code">${code}${item.ftype ? " · " + escapeHtml(item.ftype) : ""}</div>
+              </div>
+              <span class="badge ${bc}">${escapeHtml(badgeText(item))}</span>
+            </div>
+            <div class="limit-num">${escapeHtml(lim.main)}<small>${escapeHtml(lim.unit)}</small></div>
+            <div class="desc">${escapeHtml(item.limit_text || "")}</div>
+            <div class="desc">更新：${escapeHtml(item.updated_at || "-")}${item.cached ? " · 缓存" : ""}${item.source ? " · " + escapeHtml(item.source) : ""}</div>
+            <div class="actions">
+              <button type="button" class="secondary" data-act="history">变更记录</button>
+              <button type="button" class="secondary" data-act="retry">刷新</button>
+              <a href="https://ji.guguji.icu" target="_blank" rel="noopener" style="text-decoration:none">
+                <button type="button" class="secondary">估值</button>
+              </a>
+              <button type="button" class="danger" data-act="remove">移除</button>
+            </div>
+            <div class="history ${historyOpen.has(code) ? "show" : ""}" data-history></div>`;
+        }
+
+        card.addEventListener("click", async (ev) => {
+          const btn = ev.target.closest("button[data-act]");
+          if (!btn) return;
+          const act = btn.dataset.act;
+          if (act === "remove") {
+            watchlist = watchlist.filter((c) => c !== code);
+            saveWatchlist(watchlist);
+            toast("已移除 " + code);
+            await refreshAll(false);
+          } else if (act === "retry") {
+            await refreshOne(code);
+          } else if (act === "history") {
+            const box = card.querySelector("[data-history]");
+            if (historyOpen.has(code)) {
+              historyOpen.delete(code);
+              box.classList.remove("show");
+              return;
+            }
+            historyOpen.add(code);
+            box.classList.add("show");
+            box.innerHTML = "<h4>变更记录</h4><div class='desc'>加载中…</div>";
+            try {
+              const rows = await fetchHistory(code);
+              if (!rows.length) {
+                box.innerHTML = "<h4>变更记录</h4><div class='desc'>暂无历史（首次观察会记一条基线）</div>";
+              } else {
+                const lis = rows.map((r) => {
+                  const lim = r.limit_amount == null ? "无上限/开放" : (r.limit_amount + "元");
+                  const prev = r.prev_sgzt != null
+                    ? `（前：${r.prev_sgzt || "-"} / ${r.prev_limit_amount == null ? "-" : r.prev_limit_amount + "元"}）`
+                    : "";
+                  return `<li>${escapeHtml(r.changed_at || "")} · ${escapeHtml(r.sgzt || r.sgzt_norm || "")} · ${escapeHtml(String(lim))} ${escapeHtml(prev)}</li>`;
+                }).join("");
+                box.innerHTML = `<h4>变更记录</h4><ul>${lis}</ul>`;
+              }
+            } catch (e) {
+              box.innerHTML = `<h4>变更记录</h4><div class="err">${escapeHtml(e.message)}</div>`;
+            }
+          }
+        });
+
+        listEl.appendChild(card);
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    async function refreshAll(force = true) {
+      if (!watchlist.length) {
+        render([]);
+        statusText.textContent = "自选为空";
+        return;
+      }
+      statusText.textContent = "刷新中…";
+      $("refreshBtn").disabled = true;
+      try {
+        const items = await fetchBatch(watchlist, force);
+        render(items);
+        statusText.textContent = "已更新 " + new Date().toLocaleTimeString();
+      } catch (e) {
+        statusText.textContent = "刷新失败: " + e.message;
+        toast("刷新失败: " + e.message);
+        render(watchlist.map((code) => ({ code, ok: false, error: e.message })));
+      } finally {
+        $("refreshBtn").disabled = false;
+      }
+    }
+
+    async function refreshOne(code) {
+      statusText.textContent = "刷新 " + code + "…";
+      try {
+        const res = await fetch(`${API_BASE}/api/qdii/${code}?refresh=1`, { cache: "no-store" });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || "failed");
+        // merge into current view by re-fetch batch soft
+        await refreshAll(false);
+        toast(code + " 已刷新");
+      } catch (e) {
+        toast("刷新失败: " + e.message);
+        statusText.textContent = "刷新失败";
+      }
+    }
+
+    $("addBtn").addEventListener("click", async () => {
+      const code = $("codeInput").value.trim();
+      if (!/^\d{6}$/.test(code)) {
+        toast("请输入6位基金代码");
+        return;
+      }
+      if (watchlist.includes(code)) {
+        toast("已在自选中");
+        return;
+      }
+      watchlist.unshift(code);
+      saveWatchlist(watchlist);
+      $("codeInput").value = "";
+      await refreshAll(true);
+      toast("已添加 " + code);
+    });
+
+    $("codeInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") $("addBtn").click();
+    });
+    $("refreshBtn").addEventListener("click", () => refreshAll(true));
+
+    // boot
+    refreshAll(true);
+    // soft auto refresh every 3 min
+    setInterval(() => refreshAll(false), 180000);
+  </script>
+</body>
+</html>
