@@ -146,12 +146,28 @@
       gap: 10px;
       align-items: flex-start;
     }
+    .name-line {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
     .name {
       font-weight: 800;
       font-size: 15px;
       line-height: 1.35;
       color: var(--secondary);
     }
+    .gz {
+      font-size: 14px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .gz.up { color: var(--up); }
+    .gz.down { color: var(--down); }
+    .gz.neutral { color: var(--neutral); }
+    .gz.pending { color: #bbb; font-weight: 600; font-size: 12px; }
     .code {
       color: var(--muted);
       font-size: 12px;
@@ -276,6 +292,27 @@
     }
     .toast.show { opacity: 1; }
     .err { color: var(--up); font-size: 12px; margin-top: 6px; }
+    .holdings {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: #fffaf0;
+      border: 1px solid #ffe082;
+      border-radius: 10px;
+      color: #5c4b16;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+    .holdings .hl {
+      color: #9a6a00;
+      font-weight: 700;
+      margin-right: 4px;
+    }
+    .holdings .asof {
+      display: block;
+      margin-top: 4px;
+      color: #aaa;
+      font-size: 11px;
+    }
   </style>
 </head>
 <body>
@@ -297,7 +334,6 @@
 
     <div class="meta">
       <span id="statusText" class="status-pill">准备就绪</span>
-      <span id="apiText" class="status-pill"></span>
     </div>
 
     <div id="list" class="list"></div>
@@ -305,8 +341,7 @@
 
     <div class="footer">
       数据源：东方财富 FundMNBasicInformation（服务端代理 ocr.guguji.icu）· 缓存约 60 秒<br/>
-      估值工具：<a href="https://ji.guguji.icu" target="_blank" rel="noopener">ji.guguji.icu</a>
-      · 本页域名：qdii.guguji.icu · v0.1.1
+      本页域名：qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.3
     </div>
   </div>
   <div id="toast" class="toast"></div>
@@ -322,10 +357,7 @@
     const listEl = $("list");
     const emptyEl = $("empty");
     const statusText = $("statusText");
-    const apiText = $("apiText");
     const toastEl = $("toast");
-
-    apiText.textContent = API_BASE.replace("https://", "");
 
     function toast(msg) {
       toastEl.textContent = msg;
@@ -369,6 +401,28 @@
       return n.toFixed(2).replace(/\.?0+$/, "");
     }
 
+    function formatPct(pct) {
+      if (pct === null || pct === undefined || pct === "") return "--";
+      const n = Number(pct);
+      if (!Number.isFinite(n)) return String(pct);
+      const s = n.toFixed(2).replace(/\.0+$/, "").replace(/(\.[0-9]*?)0+$/, "$1");
+      return s;
+    }
+
+    function formatHoldingsHtml(holdings) {
+      const items = (holdings && Array.isArray(holdings.items)) ? holdings.items : [];
+      if (!items.length) return "";
+      const n = items.length;
+      const label = n >= 10 ? "前十大重仓" : (n >= 5 ? "前五大重仓" : "重仓股");
+      const body = items.map((x) => {
+        const name = escapeHtml(x.name || x.code || "--");
+        const pct = escapeHtml(formatPct(x.pct));
+        return `${name}（${pct}%）`;
+      }).join(" · ");
+      const asof = holdings.as_of ? `<span class="asof">持仓报告期：${escapeHtml(holdings.as_of)}</span>` : "";
+      return `<div class="holdings"><span class="hl">${label}</span>${body}${asof}</div>`;
+    }
+
     function formatLimit(amount, norm) {
       if (norm === "paused") return { main: "暂停申购", unit: "" };
       if (amount === null || amount === undefined) {
@@ -396,13 +450,53 @@
       const norm = item.sgzt_norm;
       const compact = formatAmountCompact(item.limit_amount);
 
-      if (norm === "paused") return "暂停";
+      if (norm === "paused") return "暂停申购";
       if (norm === "open" && compact == null) return "开放";
       if (compact != null) return compact;
       if (norm === "limit") return "限大额";
       if (norm === "open") return "开放";
       if (item.sgzt) return item.sgzt;
       return "未知";
+    }
+
+    function formatGzHtml(gz) {
+      if (!gz) return `<span class="gz pending">估值--</span>`;
+      if (gz.error) return `<span class="gz pending" title="${escapeHtml(gz.error)}">估值--</span>`;
+      const n = Number(gz.gszzl);
+      if (!Number.isFinite(n)) return `<span class="gz pending">估值--</span>`;
+      const cls = Math.abs(n) < 0.0005 ? "neutral" : (n > 0 ? "up" : "down");
+      const sign = n > 0 ? "+" : "";
+      const title = escapeHtml([gz.gsz != null ? `估值 ${gz.gsz}` : "", gz.gztime || ""].filter(Boolean).join(" · "));
+      return `<span class="gz ${cls}" title="${title}">${sign}${n.toFixed(2)}%</span>`;
+    }
+
+    async function fetchFundGz(code) {
+      try {
+        const res = await fetch(`${API_BASE}/api/fundgz/${code}`, { cache: "no-store" });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        return {
+          gszzl: data.gszzl,
+          gsz: data.gsz,
+          dwjz: data.dwjz,
+          gztime: data.gztime || data.jzrq || "",
+          channel: data.channel || "",
+        };
+      } catch (e) {
+        return { error: e.message || String(e) };
+      }
+    }
+
+    async function attachValuations(items) {
+      const list = Array.isArray(items) ? items : [];
+      await Promise.all(list.map(async (item) => {
+        if (!item || item.ok === false || item.error) {
+          item.gz = null;
+          return;
+        }
+        item.gz = await fetchFundGz(item.code);
+      }));
+      return list;
     }
 
     async function fetchBatch(codes, refresh = false) {
@@ -455,20 +549,21 @@
           card.innerHTML = `
             <div class="row1">
               <div>
-                <div class="name">${escapeHtml(item.name || "未知基金")}</div>
+                <div class="name-line">
+                  <span class="name">${escapeHtml(item.name || "未知基金")}</span>
+                  ${formatGzHtml(item.gz)}
+                </div>
                 <div class="code">${code}${item.ftype ? " · " + escapeHtml(item.ftype) : ""}</div>
               </div>
               <span class="badge ${bc}" title="${escapeHtml(item.sgzt || item.sgzt_norm || "")}">${escapeHtml(badgeText(item))}</span>
             </div>
             <div class="limit-num">${escapeHtml(lim.main)}<small>${escapeHtml(lim.unit)}</small></div>
             <div class="desc">${escapeHtml(item.limit_text || item.sgzt || "")}</div>
+            ${formatHoldingsHtml(item.holdings)}
             <div class="desc">更新：${escapeHtml(item.updated_at || "-")}${item.cached ? " · 缓存" : ""}${item.source ? " · " + escapeHtml(item.source) : ""}</div>
             <div class="actions">
               <button type="button" class="btn secondary" data-act="history">变更记录</button>
               <button type="button" class="btn secondary" data-act="retry">刷新</button>
-              <a href="https://ji.guguji.icu" target="_blank" rel="noopener" style="text-decoration:none">
-                <button type="button" class="btn ghost">估值</button>
-              </a>
               <button type="button" class="btn danger" data-act="remove">移除</button>
             </div>
             <div class="history ${historyOpen.has(code) ? "show" : ""}" data-history></div>`;
@@ -537,6 +632,7 @@
       $("refreshBtn").disabled = true;
       try {
         const items = await fetchBatch(watchlist, force);
+        await attachValuations(items);
         render(items);
         setStatus("已更新 " + new Date().toLocaleTimeString(), "ok");
       } catch (e) {
