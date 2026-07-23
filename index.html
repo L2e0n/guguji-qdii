@@ -1,165 +1,313 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <meta name="theme-color" content="#0b1220" />
-  <title>QDII额度宝 · guguji</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#fffdf2" />
+  <title>QDII额度宝 · 咕咕鸡</title>
   <style>
     :root {
-      --bg: #0b1220;
-      --card: #121a2b;
-      --card2: #172238;
-      --border: #243049;
-      --text: #e8eefc;
-      --muted: #8b9bb8;
-      --open: #22c55e;
-      --limit: #f59e0b;
-      --paused: #ef4444;
-      --unknown: #64748b;
-      --accent: #38bdf8;
-      --danger: #f87171;
+      --primary: #fbc02d;
+      --secondary: #2c3e50;
+      --up: #e74c3c;
+      --down: #27ae60;
+      --neutral: #999;
+      --bg: #fffdf2;
+      --card: #fff;
+      --border: #ffecb3;
+      --muted: #888;
+      --text: #333;
+      --open: #206c39;
+      --limit: #9a6a00;
+      --paused: #a34a2c;
+      --unknown: #666;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: radial-gradient(1200px 600px at 10% -10%, #1a2744 0%, var(--bg) 50%);
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      padding: 10px;
     }
-    .wrap { max-width: 760px; margin: 0 auto; padding: 16px 14px 48px; }
-    header { margin-bottom: 14px; }
-    h1 { font-size: 1.35rem; margin: 0 0 6px; letter-spacing: 0.02em; }
-    .sub { color: var(--muted); font-size: 0.86rem; line-height: 1.5; }
+    .app-container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding-bottom: 60px;
+    }
+    .header { text-align: center; margin-bottom: 15px; }
+    .header h1 {
+      color: var(--secondary);
+      margin: 0;
+      font-size: 22px;
+    }
+    .home-link {
+      display: inline-flex;
+      margin-bottom: 10px;
+      color: #b45309;
+      font-size: .85rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .home-link:hover { text-decoration: underline; }
+    .sub {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      margin-top: 8px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 15px;
+      box-shadow: 0 8px 20px rgba(251, 192, 45, 0.05);
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+    }
     .toolbar {
-      display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
     }
     input[type="text"] {
       flex: 1 1 160px;
       min-width: 140px;
-      background: var(--card);
-      border: 1px solid var(--border);
+      background: #fff;
+      border: 1px solid #ffe082;
       color: var(--text);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 15px;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 14px;
       outline: none;
     }
-    input:focus { border-color: var(--accent); }
-    button {
-      border: 0;
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 14px;
-      font-weight: 600;
+    input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(251, 192, 45, 0.18); }
+    .btn {
+      padding: 9px 14px;
+      border-radius: 8px;
+      border: none;
       cursor: pointer;
-      background: #2563eb;
-      color: white;
+      font-weight: bold;
+      font-size: 13px;
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 4px 10px rgba(251, 192, 45, 0.25);
     }
-    button.secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
-    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+    .btn.secondary {
+      background: #f5f5f5;
+      color: #666;
+      box-shadow: none;
+      border: 1px solid #eee;
+    }
+    .btn.danger {
+      background: transparent;
+      color: var(--up);
+      box-shadow: none;
+      border: 1px solid #ffd2c7;
+    }
+    .btn.ghost {
+      background: #fff7da;
+      color: #8a6d1f;
+      box-shadow: none;
+      border: 1px solid #ffe082;
+    }
     .meta {
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 8px; color: var(--muted); font-size: 12px; margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 4px 0 12px;
     }
-    .list { display: flex; flex-direction: column; gap: 10px; }
-    .card {
-      background: linear-gradient(180deg, var(--card) 0%, #0f1728 100%);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 12px 12px 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.22);
+    .status-pill {
+      background: #fff7da;
+      border: 1px solid #ffe082;
+      color: #8a6d1f;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
     }
-    .row1 { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
-    .name { font-weight: 700; font-size: 15px; line-height: 1.35; }
-    .code { color: var(--muted); font-size: 12px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .status-pill.ok {
+      background: #ecfff1;
+      border-color: #b7e4c7;
+      color: #206c39;
+    }
+    .status-pill.warn {
+      background: #fff3f0;
+      border-color: #ffd2c7;
+      color: #a34a2c;
+    }
+    .list { display: flex; flex-direction: column; gap: 0; }
+    .row1 {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .name {
+      font-weight: 800;
+      font-size: 15px;
+      line-height: 1.35;
+      color: var(--secondary);
+    }
+    .code {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+      font-variant-numeric: tabular-nums;
+    }
     .badge {
       flex-shrink: 0;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 4px 8px;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 6px 12px;
       border-radius: 999px;
       border: 1px solid transparent;
+      min-width: 52px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
     }
-    .badge.open { color: #052e16; background: #86efac; }
-    .badge.limit { color: #451a03; background: #fcd34d; }
-    .badge.paused { color: #450a0a; background: #fca5a5; }
-    .badge.unknown { color: #e2e8f0; background: #475569; }
+    .badge.open {
+      color: #206c39;
+      background: #ecfff1;
+      border-color: #b7e4c7;
+    }
+    .badge.limit {
+      color: #000;
+      background: var(--primary);
+      border-color: #f9a825;
+      box-shadow: 0 4px 10px rgba(251, 192, 45, 0.3);
+    }
+    .badge.paused {
+      color: #a34a2c;
+      background: #fff3f0;
+      border-color: #ffd2c7;
+    }
+    .badge.unknown {
+      color: #666;
+      background: #f0f0f0;
+      border-color: #e5e5e5;
+    }
     .limit-num {
-      margin-top: 10px;
+      margin-top: 12px;
       font-size: 1.55rem;
       font-weight: 800;
       letter-spacing: 0.01em;
       font-variant-numeric: tabular-nums;
+      color: var(--secondary);
     }
-    .limit-num small { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-left: 4px; }
-    .desc { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.45; }
-    .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-    .actions button { padding: 7px 10px; font-size: 12px; }
-    .actions button.danger { background: transparent; color: var(--danger); border: 1px solid #7f1d1d; }
+    .limit-num small {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-left: 4px;
+    }
+    .desc {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .actions .btn { padding: 7px 12px; font-size: 12px; }
     .history {
-      margin-top: 10px;
-      border-top: 1px dashed var(--border);
-      padding-top: 8px;
+      margin-top: 12px;
+      border-top: 1px solid #fff3e0;
+      padding-top: 10px;
       display: none;
     }
     .history.show { display: block; }
-    .history h4 { margin: 0 0 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
+    .history h4 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .history ul { margin: 0; padding: 0; }
     .history li {
       list-style: none;
       font-size: 12px;
       color: var(--text);
-      padding: 5px 0;
-      border-bottom: 1px solid rgba(36,48,73,.6);
-      line-height: 1.4;
+      padding: 7px 0;
+      border-bottom: 1px solid #fff8e1;
+      line-height: 1.45;
     }
-    .history ul { margin: 0; padding: 0; }
     .empty {
-      text-align: center; color: var(--muted); padding: 40px 12px;
-      border: 1px dashed var(--border); border-radius: 14px;
+      text-align: center;
+      color: var(--muted);
+      padding: 40px 12px;
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      background: #fff;
+      margin-bottom: 12px;
     }
-    footer {
-      margin-top: 22px; color: var(--muted); font-size: 11px; line-height: 1.6;
+    .footer {
+      text-align: center;
+      padding: 24px 8px 10px;
+      font-size: 11px;
+      color: #bbb;
+      line-height: 1.7;
     }
-    footer a { color: var(--accent); }
+    .footer a { color: #b8860b; text-decoration: none; font-weight: 600; }
+    .footer a:hover { text-decoration: underline; }
     .toast {
-      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-      background: #1e293b; color: white; padding: 10px 14px; border-radius: 10px;
-      font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s;
-      border: 1px solid var(--border); z-index: 20; max-width: 90vw;
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      background: var(--secondary);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+      z-index: 20;
+      max-width: 90vw;
+      box-shadow: 0 8px 20px rgba(0,0,0,.15);
     }
     .toast.show { opacity: 1; }
-    .err { color: #fca5a5; font-size: 12px; margin-top: 6px; }
+    .err { color: var(--up); font-size: 12px; margin-top: 6px; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>QDII 额度监控</h1>
+  <div class="app-container">
+    <div class="header">
+      <a class="home-link" href="https://guguji.icu">← 返回主页</a>
+      <h1>🐤 QDII 额度监控</h1>
       <div class="sub">
         跟踪基金「申购状态 + 单日累计申购上限」（东财口径）。状态/限额变化会记录时间线。<br/>
         非代销渠道剩余库存；仅作提醒工具，不构成投资建议。
       </div>
-    </header>
+    </div>
 
-    <div class="toolbar">
+    <div class="card toolbar">
       <input id="codeInput" type="text" inputmode="numeric" maxlength="6" placeholder="输入6位基金代码，如 016664" />
-      <button id="addBtn" type="button">添加自选</button>
-      <button id="refreshBtn" class="secondary" type="button">刷新全部</button>
+      <button id="addBtn" class="btn" type="button">添加自选</button>
+      <button id="refreshBtn" class="btn secondary" type="button">刷新全部</button>
     </div>
+
     <div class="meta">
-      <span id="statusText">准备就绪</span>
-      <span id="apiText"></span>
+      <span id="statusText" class="status-pill">准备就绪</span>
+      <span id="apiText" class="status-pill"></span>
     </div>
+
     <div id="list" class="list"></div>
     <div id="empty" class="empty" hidden>还没有自选，先添加一只 QDII 基金吧</div>
 
-    <footer>
+    <div class="footer">
       数据源：东方财富 FundMNBasicInformation（服务端代理 ocr.guguji.icu）· 缓存约 60 秒<br/>
       估值工具：<a href="https://ji.guguji.icu" target="_blank" rel="noopener">ji.guguji.icu</a>
-      · 本页域名：qdii.guguji.icu · v0.1.0 MVP
-    </footer>
+      · 本页域名：qdii.guguji.icu · v0.1.1
+    </div>
   </div>
   <div id="toast" class="toast"></div>
 
@@ -186,6 +334,12 @@
       toast._t = setTimeout(() => toastEl.classList.remove("show"), 2200);
     }
 
+    function setStatus(msg, kind) {
+      statusText.textContent = msg;
+      statusText.classList.remove("ok", "warn");
+      if (kind) statusText.classList.add(kind);
+    }
+
     function loadWatchlist() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -204,6 +358,16 @@
 
     let watchlist = loadWatchlist();
     const historyOpen = new Set();
+
+    function formatAmountCompact(amount) {
+      if (amount === null || amount === undefined || amount === "") return null;
+      const n = Number(amount);
+      if (!Number.isFinite(n)) return String(amount);
+      if (n === 0) return "0";
+      if (n >= 10000 && n % 10000 === 0) return String(n / 10000) + "万";
+      if (Number.isInteger(n)) return String(n);
+      return n.toFixed(2).replace(/\.?0+$/, "");
+    }
 
     function formatLimit(amount, norm) {
       if (norm === "paused") return { main: "暂停申购", unit: "" };
@@ -227,11 +391,17 @@
       return "unknown";
     }
 
+    // 黄色/状态徽章：限大额直接显示金额（1000 / 100 / 1万）
     function badgeText(item) {
+      const norm = item.sgzt_norm;
+      const compact = formatAmountCompact(item.limit_amount);
+
+      if (norm === "paused") return "暂停";
+      if (norm === "open" && compact == null) return "开放";
+      if (compact != null) return compact;
+      if (norm === "limit") return "限大额";
+      if (norm === "open") return "开放";
       if (item.sgzt) return item.sgzt;
-      if (item.sgzt_norm === "open") return "开放申购";
-      if (item.sgzt_norm === "limit") return "限大额";
-      if (item.sgzt_norm === "paused") return "暂停申购";
       return "未知";
     }
 
@@ -274,10 +444,10 @@
               </div>
               <span class="badge unknown">错误</span>
             </div>
-            <div class="err">${item.error || "unknown error"}</div>
+            <div class="err">${escapeHtml(item.error || "unknown error")}</div>
             <div class="actions">
-              <button type="button" data-act="retry">重试</button>
-              <button type="button" class="danger" data-act="remove">移除</button>
+              <button type="button" class="btn" data-act="retry">重试</button>
+              <button type="button" class="btn danger" data-act="remove">移除</button>
             </div>`;
         } else {
           const lim = formatLimit(item.limit_amount, item.sgzt_norm);
@@ -288,18 +458,18 @@
                 <div class="name">${escapeHtml(item.name || "未知基金")}</div>
                 <div class="code">${code}${item.ftype ? " · " + escapeHtml(item.ftype) : ""}</div>
               </div>
-              <span class="badge ${bc}">${escapeHtml(badgeText(item))}</span>
+              <span class="badge ${bc}" title="${escapeHtml(item.sgzt || item.sgzt_norm || "")}">${escapeHtml(badgeText(item))}</span>
             </div>
             <div class="limit-num">${escapeHtml(lim.main)}<small>${escapeHtml(lim.unit)}</small></div>
-            <div class="desc">${escapeHtml(item.limit_text || "")}</div>
+            <div class="desc">${escapeHtml(item.limit_text || item.sgzt || "")}</div>
             <div class="desc">更新：${escapeHtml(item.updated_at || "-")}${item.cached ? " · 缓存" : ""}${item.source ? " · " + escapeHtml(item.source) : ""}</div>
             <div class="actions">
-              <button type="button" class="secondary" data-act="history">变更记录</button>
-              <button type="button" class="secondary" data-act="retry">刷新</button>
+              <button type="button" class="btn secondary" data-act="history">变更记录</button>
+              <button type="button" class="btn secondary" data-act="retry">刷新</button>
               <a href="https://ji.guguji.icu" target="_blank" rel="noopener" style="text-decoration:none">
-                <button type="button" class="secondary">估值</button>
+                <button type="button" class="btn ghost">估值</button>
               </a>
-              <button type="button" class="danger" data-act="remove">移除</button>
+              <button type="button" class="btn danger" data-act="remove">移除</button>
             </div>
             <div class="history ${historyOpen.has(code) ? "show" : ""}" data-history></div>`;
         }
@@ -360,17 +530,17 @@
     async function refreshAll(force = true) {
       if (!watchlist.length) {
         render([]);
-        statusText.textContent = "自选为空";
+        setStatus("自选为空");
         return;
       }
-      statusText.textContent = "刷新中…";
+      setStatus("刷新中…");
       $("refreshBtn").disabled = true;
       try {
         const items = await fetchBatch(watchlist, force);
         render(items);
-        statusText.textContent = "已更新 " + new Date().toLocaleTimeString();
+        setStatus("已更新 " + new Date().toLocaleTimeString(), "ok");
       } catch (e) {
-        statusText.textContent = "刷新失败: " + e.message;
+        setStatus("刷新失败: " + e.message, "warn");
         toast("刷新失败: " + e.message);
         render(watchlist.map((code) => ({ code, ok: false, error: e.message })));
       } finally {
@@ -379,17 +549,16 @@
     }
 
     async function refreshOne(code) {
-      statusText.textContent = "刷新 " + code + "…";
+      setStatus("刷新 " + code + "…");
       try {
         const res = await fetch(`${API_BASE}/api/qdii/${code}?refresh=1`, { cache: "no-store" });
         const data = await res.json();
         if (!data.ok) throw new Error(data.error || "failed");
-        // merge into current view by re-fetch batch soft
         await refreshAll(false);
         toast(code + " 已刷新");
       } catch (e) {
         toast("刷新失败: " + e.message);
-        statusText.textContent = "刷新失败";
+        setStatus("刷新失败", "warn");
       }
     }
 
