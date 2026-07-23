@@ -136,6 +136,28 @@
       flex-wrap: wrap;
       margin: 4px 0 12px;
     }
+    .sort-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .sort-bar .lbl {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .sort-bar .btn {
+      padding: 5px 10px;
+      font-size: 11px;
+      box-shadow: none;
+    }
+    .sort-bar .btn.active {
+      background: var(--primary);
+      color: #000;
+      border-color: #f9a825;
+      font-weight: 800;
+    }
     .status-pill {
       background: #fff7da;
       border: 1px solid #ffe082;
@@ -371,6 +393,12 @@
 
     <div class="meta">
       <span id="statusText" class="status-pill">准备就绪</span>
+      <div class="sort-bar" id="sortBar" title="按单日购买限额排序">
+        <span class="lbl">按限额</span>
+        <button type="button" class="btn secondary" data-sort="limit-asc">升序</button>
+        <button type="button" class="btn secondary" data-sort="limit-desc">降序</button>
+        <button type="button" class="btn secondary" data-sort="default">默认</button>
+      </div>
     </div>
 
     <div id="list" class="list"></div>
@@ -378,7 +406,7 @@
 
     <div class="footer">
       数据源：东方财富 · 缓存约 60 秒<br/>
-      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.8
+      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.9
     </div>
   </div>
   <div id="toast" class="toast"></div>
@@ -427,6 +455,62 @@
 
     let watchlist = loadWatchlist();
     const historyOpen = new Set();
+    const SORT_KEY = "qdii_sort_v1";
+    let lastItems = [];
+    let sortMode = (function () {
+      try {
+        const v = localStorage.getItem(SORT_KEY);
+        if (v === "limit-asc" || v === "limit-desc" || v === "default") return v;
+      } catch (_) {}
+      return "default";
+    })();
+
+    function saveSortMode(mode) {
+      sortMode = mode;
+      try { localStorage.setItem(SORT_KEY, mode); } catch (_) {}
+      syncSortButtons();
+    }
+
+    function syncSortButtons() {
+      const bar = document.getElementById("sortBar");
+      if (!bar) return;
+      bar.querySelectorAll("button[data-sort]").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.sort === sortMode);
+        btn.classList.toggle("secondary", btn.dataset.sort !== sortMode);
+      });
+    }
+
+    /** 限额数值排序键：暂停=0，有上限用数字，开放无上限=Infinity，未知/失败=null(排后) */
+    function limitSortKey(item) {
+      if (!item || item.ok === false || item.error) return null;
+      const norm = item.sgzt_norm;
+      if (norm === "paused") return 0;
+      const amount = item.limit_amount;
+      if (amount === null || amount === undefined || amount === "") {
+        if (norm === "open") return Number.POSITIVE_INFINITY;
+        return null;
+      }
+      const n = Number(amount);
+      if (!Number.isFinite(n)) return null;
+      return n;
+    }
+
+    function orderedCodesForRender(map) {
+      const codes = [...watchlist];
+      if (sortMode === "default") return codes;
+      const dir = sortMode === "limit-asc" ? 1 : -1;
+      return codes.sort((a, b) => {
+        const ka = limitSortKey(map.get(a));
+        const kb = limitSortKey(map.get(b));
+        const aNull = ka === null || ka === undefined;
+        const bNull = kb === null || kb === undefined;
+        if (aNull && bNull) return watchlist.indexOf(a) - watchlist.indexOf(b);
+        if (aNull) return 1;
+        if (bNull) return -1;
+        if (ka === kb) return watchlist.indexOf(a) - watchlist.indexOf(b);
+        return ka < kb ? -dir : dir;
+      });
+    }
 
     function formatAmountCompact(amount) {
       if (amount === null || amount === undefined || amount === "") return null;
@@ -647,12 +731,14 @@
     }
 
     function render(items) {
-      const map = new Map(items.map((i) => [i.code, i]));
+      if (Array.isArray(items)) lastItems = items;
+      const map = new Map((lastItems || []).map((i) => [i.code, i]));
       listEl.innerHTML = "";
       emptyEl.hidden = watchlist.length > 0;
       if (!watchlist.length) return;
 
-      for (const code of watchlist) {
+      const codes = orderedCodesForRender(map);
+      for (const code of codes) {
         const item = map.get(code) || { code, ok: false, error: "无数据" };
         const card = document.createElement("div");
         card.className = "card";
@@ -821,7 +907,21 @@
     });
     $("refreshBtn").addEventListener("click", () => refreshAll(true));
 
+    $("sortBar").addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button[data-sort]");
+      if (!btn) return;
+      const mode = btn.dataset.sort;
+      if (!mode || mode === sortMode) return;
+      saveSortMode(mode);
+      render(lastItems);
+      const label = mode === "limit-asc" ? "限额升序（低→高）"
+        : mode === "limit-desc" ? "限额降序（高→低）"
+        : "默认顺序";
+      toast("已按" + label + "排列");
+    });
+
     // boot
+    syncSortButtons();
     refreshAll(true);
     // soft auto refresh every 3 min
     setInterval(() => refreshAll(false), 180000);
