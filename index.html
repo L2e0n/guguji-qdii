@@ -347,9 +347,7 @@
       <a class="home-link" href="https://guguji.icu">← 返回主页</a>
       <h1>🐤 QDII 额度监控</h1>
       <div class="sub">
-        跟踪基金「申购状态 + 单日累计申购上限」（东财口径）。状态/限额变化会记录时间线。<br/>
-        非代销渠道剩余库存；仅作提醒工具，不构成投资建议。
-      </div>
+        跟踪基金「申购状态 + 单日累计申购上限」（东财口径）。状态/限额变化会记录时间线。</div>
     </div>
 
     <div class="card toolbar">
@@ -366,8 +364,8 @@
     <div id="empty" class="empty" hidden>还没有自选，先添加一只 QDII 基金吧</div>
 
     <div class="footer">
-      数据源：东方财富 FundMNBasicInformation（服务端代理 ocr.guguji.icu）· 缓存约 60 秒<br/>
-      本页域名：qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.5
+      数据源：东方财富 · 缓存约 60 秒<br/>
+      本页域名：qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.6
     </div>
   </div>
   <div id="toast" class="toast"></div>
@@ -471,7 +469,7 @@
       return "unknown";
     }
 
-    // 黄色/状态徽章：合并限额文案，例如「单日购买额100元」
+    // 黄色/状态徽章：合并限额文案，例如「单日购买限额100元」
     function badgeText(item) {
       const norm = item.sgzt_norm;
       const amount = item.limit_amount;
@@ -483,10 +481,10 @@
         if (Number.isFinite(n)) {
           if (n <= 0 && norm === "paused") return "暂停申购";
           if (n >= 10000 && n % 10000 === 0) {
-            return `单日购买额${n / 10000}万元`;
+            return `单日购买限额${n / 10000}万元`;
           }
           const s = Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, "");
-          return `单日购买额${s}元`;
+          return `单日购买限额${s}元`;
         }
       }
 
