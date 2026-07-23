@@ -160,8 +160,29 @@
       line-height: 1.35;
       color: var(--secondary);
     }
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      align-items: baseline;
+      margin-top: 2px;
+    }
+    .metric {
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .metric b {
+      font-weight: 800;
+      color: var(--secondary);
+      margin-left: 2px;
+    }
+    .metric .gz {
+      margin-left: 2px;
+    }
     .gz {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
@@ -178,14 +199,17 @@
     }
     .badge {
       flex-shrink: 0;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
-      padding: 6px 12px;
+      padding: 7px 12px;
       border-radius: 999px;
       border: 1px solid transparent;
       min-width: 52px;
+      max-width: 46%;
       text-align: center;
       font-variant-numeric: tabular-nums;
+      line-height: 1.25;
+      white-space: normal;
     }
     .badge.open {
       color: #206c39;
@@ -343,7 +367,7 @@
 
     <div class="footer">
       数据源：东方财富 FundMNBasicInformation（服务端代理 ocr.guguji.icu）· 缓存约 60 秒<br/>
-      本页域名：qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.4
+      本页域名：qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.5
     </div>
   </div>
   <div id="toast" class="toast"></div>
@@ -447,29 +471,61 @@
       return "unknown";
     }
 
-    // 黄色/状态徽章：限大额直接显示金额（1000 / 100 / 1万）
+    // 黄色/状态徽章：合并限额文案，例如「单日购买额100元」
     function badgeText(item) {
       const norm = item.sgzt_norm;
-      const compact = formatAmountCompact(item.limit_amount);
+      const amount = item.limit_amount;
 
       if (norm === "paused") return "暂停申购";
-      if (norm === "open" && compact == null) return "开放";
-      if (compact != null) return compact;
+
+      if (amount !== null && amount !== undefined && amount !== "") {
+        const n = Number(amount);
+        if (Number.isFinite(n)) {
+          if (n <= 0 && norm === "paused") return "暂停申购";
+          if (n >= 10000 && n % 10000 === 0) {
+            return `单日购买额${n / 10000}万元`;
+          }
+          const s = Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, "");
+          return `单日购买额${s}元`;
+        }
+      }
+
+      if (norm === "open") return "开放申购";
       if (norm === "limit") return "限大额";
-      if (norm === "open") return "开放";
       if (item.sgzt) return item.sgzt;
       return "未知";
     }
 
-    function formatGzHtml(gz) {
-      if (!gz) return `<span class="gz pending">估值--</span>`;
-      if (gz.error) return `<span class="gz pending" title="${escapeHtml(gz.error)}">估值--</span>`;
-      const n = Number(gz.gszzl);
-      if (!Number.isFinite(n)) return `<span class="gz pending">估值--</span>`;
-      const cls = Math.abs(n) < 0.0005 ? "neutral" : (n > 0 ? "up" : "down");
-      const sign = n > 0 ? "+" : "";
-      const title = escapeHtml([gz.gsz != null ? `估值 ${gz.gsz}` : "", gz.gztime || ""].filter(Boolean).join(" · "));
-      return `<span class="gz ${cls}" title="${title}">${sign}${n.toFixed(2)}%</span>`;
+    function formatNavNum(v) {
+      const n = Number(v);
+      if (!Number.isFinite(n) || n <= 0) return null;
+      return n.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+    }
+
+    // 同时显示：最近净值 + 当日估值预估
+    function formatGzHtml(gz, item) {
+      const nav = formatNavNum(gz && !gz.error ? gz.dwjz : null) || formatNavNum(item && item.dwjz);
+      const navDate = (gz && (gz.jzrq || "")) || (item && (item.fsrq || "")) || "";
+      const gsz = formatNavNum(gz && !gz.error ? gz.gsz : null);
+      const pct = gz && !gz.error ? Number(gz.gszzl) : NaN;
+      const hasPct = Number.isFinite(pct);
+      const cls = !hasPct ? "pending" : (Math.abs(pct) < 0.0005 ? "neutral" : (pct > 0 ? "up" : "down"));
+      const sign = hasPct && pct > 0 ? "+" : "";
+      const pctText = hasPct ? `${sign}${pct.toFixed(2)}%` : "--";
+      const gszTitle = escapeHtml([
+        gsz ? `估算净值 ${gsz}` : "",
+        gz && gz.gztime ? `估值时间 ${gz.gztime}` : "",
+      ].filter(Boolean).join(" · "));
+
+      const navHtml = nav
+        ? `<span class="metric" title="${escapeHtml(navDate ? "净值日期 " + navDate : "最近公布净值")}">净值<b>${escapeHtml(nav)}</b>${navDate ? `<span style="color:#bbb;font-size:11px;margin-left:3px">${escapeHtml(navDate)}</span>` : ""}</span>`
+        : `<span class="metric">净值<b>--</b></span>`;
+
+      const gzHtml = (gsz || hasPct)
+        ? `<span class="metric" title="${gszTitle}">估值${gsz ? `<b>${escapeHtml(gsz)}</b>` : ""} <span class="gz ${cls}">${pctText}</span></span>`
+        : `<span class="metric">估值 <span class="gz pending">--</span></span>`;
+
+      return `<div class="metrics">${navHtml}${gzHtml}</div>`;
     }
 
     async function fetchFundGz(code) {
@@ -481,7 +537,8 @@
           gszzl: data.gszzl,
           gsz: data.gsz,
           dwjz: data.dwjz,
-          gztime: data.gztime || data.jzrq || "",
+          jzrq: data.jzrq || "",
+          gztime: data.gztime || "",
           channel: data.channel || "",
         };
       } catch (e) {
@@ -546,21 +603,19 @@
               <button type="button" class="btn danger" data-act="remove">移除</button>
             </div>`;
         } else {
-          const lim = formatLimit(item.limit_amount, item.sgzt_norm);
           const bc = badgeClass(item.sgzt_norm);
+          const badgeTitle = [item.sgzt, item.limit_text].filter(Boolean).join(" · ");
           card.innerHTML = `
             <div class="row1">
-              <div>
+              <div style="min-width:0;flex:1">
                 <div class="name-line">
                   <span class="name">${escapeHtml(item.name || "未知基金")}</span>
-                  ${formatGzHtml(item.gz)}
                 </div>
+                ${formatGzHtml(item.gz, item)}
                 <div class="code">${code}${item.ftype ? " · " + escapeHtml(item.ftype) : ""}</div>
               </div>
-              <span class="badge ${bc}" title="${escapeHtml(item.sgzt || item.sgzt_norm || "")}">${escapeHtml(badgeText(item))}</span>
+              <span class="badge ${bc}" title="${escapeHtml(badgeTitle || item.sgzt_norm || "")}">${escapeHtml(badgeText(item))}</span>
             </div>
-            <div class="limit-num">${escapeHtml(lim.main)}<small>${escapeHtml(lim.unit)}</small></div>
-            <div class="desc">${escapeHtml(item.limit_text || item.sgzt || "")}</div>
             ${formatHoldingsHtml(item.holdings)}
             <div class="desc">更新：${escapeHtml(item.updated_at || "-")}${item.cached ? " · 缓存" : ""}${item.source ? " · " + escapeHtml(item.source) : ""}</div>
             <div class="actions">
