@@ -138,14 +138,22 @@
     }
     .sort-bar {
       display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+    .sort-row {
+      display: flex;
       align-items: center;
       gap: 6px;
       flex-wrap: wrap;
+      justify-content: flex-end;
     }
     .sort-bar .lbl {
       font-size: 11px;
       color: var(--muted);
       font-weight: 600;
+      min-width: 2.5em;
     }
     .sort-bar .btn {
       padding: 5px 10px;
@@ -396,11 +404,19 @@
 
     <div class="meta">
       <span id="statusText" class="status-pill">准备就绪</span>
-      <div class="sort-bar" id="sortBar" title="按单日购买限额排序">
-        <span class="lbl">按限额</span>
-        <button type="button" class="btn secondary" data-sort="limit-asc">升序</button>
-        <button type="button" class="btn secondary" data-sort="limit-desc">降序</button>
-        <button type="button" class="btn secondary" data-sort="default">默认</button>
+      <div class="sort-bar" id="sortBar" title="可组合：A/C 分组 + 限额排序">
+        <div class="sort-row" data-sort-dim="limit">
+          <span class="lbl">限额</span>
+          <button type="button" class="btn secondary" data-limit-sort="asc">升序</button>
+          <button type="button" class="btn secondary" data-limit-sort="desc">降序</button>
+          <button type="button" class="btn secondary" data-limit-sort="default">默认</button>
+        </div>
+        <div class="sort-row" data-sort-dim="share">
+          <span class="lbl">份额</span>
+          <button type="button" class="btn secondary" data-share-sort="a-first">A在前</button>
+          <button type="button" class="btn secondary" data-share-sort="c-first">C在前</button>
+          <button type="button" class="btn secondary" data-share-sort="none">不限</button>
+        </div>
       </div>
     </div>
 
@@ -409,7 +425,7 @@
 
     <div class="footer">
       数据源：东方财富 · 缓存约 60 秒<br/>
-      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.10
+      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.11
     </div>
   </div>
   <div id="toast" class="toast"></div>
@@ -544,28 +560,43 @@
 
     let watchlist = loadWatchlist();
     const historyOpen = new Set();
-    const SORT_KEY = "qdii_sort_v1";
+    const SORT_KEY = "qdii_sort_v2";
     let lastItems = [];
-    let sortMode = (function () {
+    let sortState = (function () {
+      const fallback = { limit: "default", share: "none" };
       try {
-        const v = localStorage.getItem(SORT_KEY);
-        if (v === "limit-asc" || v === "limit-desc" || v === "default") return v;
+        const raw = localStorage.getItem(SORT_KEY);
+        if (raw) {
+          const o = JSON.parse(raw);
+          const limit = (o && (o.limit === "asc" || o.limit === "desc" || o.limit === "default")) ? o.limit : "default";
+          const share = (o && (o.share === "a-first" || o.share === "c-first" || o.share === "none")) ? o.share : "none";
+          return { limit, share };
+        }
+        // migrate v1
+        const v1 = localStorage.getItem("qdii_sort_v1");
+        if (v1 === "limit-asc") return { limit: "asc", share: "none" };
+        if (v1 === "limit-desc") return { limit: "desc", share: "none" };
       } catch (_) {}
-      return "default";
+      return fallback;
     })();
 
-    function saveSortMode(mode) {
-      sortMode = mode;
-      try { localStorage.setItem(SORT_KEY, mode); } catch (_) {}
+    function saveSortState() {
+      try { localStorage.setItem(SORT_KEY, JSON.stringify(sortState)); } catch (_) {}
       syncSortButtons();
     }
 
     function syncSortButtons() {
       const bar = document.getElementById("sortBar");
       if (!bar) return;
-      bar.querySelectorAll("button[data-sort]").forEach((btn) => {
-        btn.classList.toggle("active", btn.dataset.sort === sortMode);
-        btn.classList.toggle("secondary", btn.dataset.sort !== sortMode);
+      bar.querySelectorAll("button[data-limit-sort]").forEach((btn) => {
+        const on = btn.dataset.limitSort === sortState.limit;
+        btn.classList.toggle("active", on);
+        btn.classList.toggle("secondary", !on);
+      });
+      bar.querySelectorAll("button[data-share-sort]").forEach((btn) => {
+        const on = btn.dataset.shareSort === sortState.share;
+        btn.classList.toggle("active", on);
+        btn.classList.toggle("secondary", !on);
       });
     }
 
@@ -584,20 +615,73 @@
       return n;
     }
 
+    /**
+     * 份额类别：A=0, C=1, 其它字母份额=2, 未知=9
+     * 依据基金名称末尾 A/C 或 “A类/C类/人民币A”等
+     */
+    function shareClassKey(item) {
+      if (!item || item.ok === false || item.error) return 9;
+      const n = String(item.name || "").trim();
+      if (!n) return 9;
+      if (/C类|持有期C|人民币C|美元现汇C|美元现钞C|美元C/.test(n)) return 1;
+      if (/A类|持有期A|人民币A|美元现汇A|美元现钞A|美元A/.test(n)) return 0;
+      // 名称以 A/C 结尾（最常见：天弘全球高端制造A）
+      if (/C$/i.test(n)) return 1;
+      if (/A$/i.test(n)) return 0;
+      const m = n.match(/([A-Za-z])\s*$/);
+      if (m) {
+        const c = m[1].toUpperCase();
+        if (c === "A") return 0;
+        if (c === "C") return 1;
+        return 2;
+      }
+      return 9;
+    }
+
+    function cmpNullableNum(ka, kb, dir, aCode, bCode) {
+      const aNull = ka === null || ka === undefined;
+      const bNull = kb === null || kb === undefined;
+      if (aNull && bNull) return 0;
+      if (aNull) return 1;
+      if (bNull) return -1;
+      if (ka === kb) return 0;
+      return ka < kb ? -dir : dir;
+    }
+
     function orderedCodesForRender(map) {
       const codes = [...watchlist];
-      if (sortMode === "default") return codes;
-      const dir = sortMode === "limit-asc" ? 1 : -1;
+      const limitOn = sortState.limit === "asc" || sortState.limit === "desc";
+      const shareOn = sortState.share === "a-first" || sortState.share === "c-first";
+      if (!limitOn && !shareOn) return codes;
+
+      const limitDir = sortState.limit === "asc" ? 1 : -1;
+      // a-first: A(0) 在前；c-first: 反转
+      const shareDir = sortState.share === "a-first" ? 1 : -1;
+
       return codes.sort((a, b) => {
-        const ka = limitSortKey(map.get(a));
-        const kb = limitSortKey(map.get(b));
-        const aNull = ka === null || ka === undefined;
-        const bNull = kb === null || kb === undefined;
-        if (aNull && bNull) return watchlist.indexOf(a) - watchlist.indexOf(b);
-        if (aNull) return 1;
-        if (bNull) return -1;
-        if (ka === kb) return watchlist.indexOf(a) - watchlist.indexOf(b);
-        return ka < kb ? -dir : dir;
+        const ia = map.get(a);
+        const ib = map.get(b);
+
+        // 组合规则：若两者都开 —— 先按 A/C 分组，组内再按限额
+        // 只开一项则只按该项
+        if (shareOn) {
+          const sa = shareClassKey(ia);
+          const sb = shareClassKey(ib);
+          const cShare = cmpNullableNum(sa, sb, shareDir, a, b);
+          // unknown(9) always last regardless of c-first/a-first? keep numeric so c-first puts 9 first... fix unknowns last
+          if (sa !== sb) {
+            if (sa >= 9 && sb < 9) return 1;
+            if (sb >= 9 && sa < 9) return -1;
+            return cShare;
+          }
+        }
+
+        if (limitOn) {
+          const cLim = cmpNullableNum(limitSortKey(ia), limitSortKey(ib), limitDir, a, b);
+          if (cLim !== 0) return cLim;
+        }
+
+        return watchlist.indexOf(a) - watchlist.indexOf(b);
       });
     }
 
@@ -1004,16 +1088,28 @@
     });
 
     $("sortBar").addEventListener("click", (ev) => {
-      const btn = ev.target.closest("button[data-sort]");
-      if (!btn) return;
-      const mode = btn.dataset.sort;
-      if (!mode || mode === sortMode) return;
-      saveSortMode(mode);
+      const limitBtn = ev.target.closest("button[data-limit-sort]");
+      const shareBtn = ev.target.closest("button[data-share-sort]");
+      if (!limitBtn && !shareBtn) return;
+
+      if (limitBtn) {
+        const v = limitBtn.dataset.limitSort;
+        if (!v || v === sortState.limit) return;
+        sortState.limit = v;
+      } else if (shareBtn) {
+        const v = shareBtn.dataset.shareSort;
+        if (!v || v === sortState.share) return;
+        sortState.share = v;
+      }
+      saveSortState();
       render(lastItems);
-      const label = mode === "limit-asc" ? "限额升序（低→高）"
-        : mode === "limit-desc" ? "限额降序（高→低）"
-        : "默认顺序";
-      toast("已按" + label + "排列");
+
+      const parts = [];
+      if (sortState.share === "a-first") parts.push("A类在前");
+      else if (sortState.share === "c-first") parts.push("C类在前");
+      if (sortState.limit === "asc") parts.push("限额升序");
+      else if (sortState.limit === "desc") parts.push("限额降序");
+      toast(parts.length ? ("已排序：" + parts.join(" + ")) : "已恢复默认顺序");
     });
 
     // boot
