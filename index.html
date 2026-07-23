@@ -46,13 +46,26 @@
     }
     .home-link {
       display: inline-flex;
-      margin-bottom: 10px;
-      color: #b45309;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: #9a6a00;
       font-size: .85rem;
-      font-weight: 600;
+      font-weight: 700;
       text-decoration: none;
+      background: #fff7d1;
+      border: 1px solid #ffe58a;
+      border-radius: 999px;
+      padding: 6px 14px;
+      box-shadow: 0 2px 8px rgba(251, 192, 45, 0.12);
+      transition: .15s ease;
     }
-    .home-link:hover { text-decoration: underline; }
+    .home-link:hover {
+      text-decoration: none;
+      background: #fff1b8;
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
     .sub {
       color: var(--muted);
       font-size: 12px;
@@ -344,7 +357,7 @@
 <body>
   <div class="app-container">
     <div class="header">
-      <a class="home-link" href="https://guguji.icu">← 返回主页</a>
+      <a class="home-link" href="https://guguji.icu" title="返回咕咕鸡大作战主页">← 返回主页</a>
       <h1>🐤 QD鸡</h1>
       <div class="sub">
         跟踪基金「申购状态 + 单日累计申购上限」（东财口径）。状态/限额变化会记录时间线。</div>
@@ -365,7 +378,7 @@
 
     <div class="footer">
       数据源：东方财富 · 缓存约 60 秒<br/>
-      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.7
+      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.8
     </div>
   </div>
   <div id="toast" class="toast"></div>
