@@ -389,6 +389,9 @@
       <input id="codeInput" type="text" inputmode="numeric" maxlength="6" placeholder="输入6位基金代码，如 016664" />
       <button id="addBtn" class="btn" type="button">添加自选</button>
       <button id="refreshBtn" class="btn secondary" type="button">刷新全部</button>
+      <button id="exportBtn" class="btn ghost" type="button" title="导出代码+名称，便于换设备">导出列表</button>
+      <button id="importBtn" class="btn ghost" type="button" title="从文本文件导入基金代码">导入列表</button>
+      <input id="importFile" type="file" accept=".txt,.csv,text/plain" hidden />
     </div>
 
     <div class="meta">
@@ -406,7 +409,7 @@
 
     <div class="footer">
       数据源：东方财富 · 缓存约 60 秒<br/>
-      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.9
+      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.10
     </div>
   </div>
   <div id="toast" class="toast"></div>
@@ -451,6 +454,92 @@
 
     function saveWatchlist(codes) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
+    }
+
+    function exportWatchlistFile() {
+      if (!watchlist.length) {
+        toast("自选为空，无需导出");
+        return;
+      }
+      const map = new Map((lastItems || []).map((i) => [i.code, i]));
+      const lines = watchlist.map((code) => {
+        const item = map.get(code);
+        const name = item && item.name ? String(item.name).replace(/[\r\n]+/g, " ").trim() : "";
+        return name ? (code + " " + name) : code;
+      });
+      const body = "# QD鸡自选列表  每行: 代码 名称\n" + lines.join("\n") + "\n";
+      const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
+      const a = document.createElement("a");
+      const d = new Date();
+      const stamp = d.getFullYear()
+        + String(d.getMonth() + 1).padStart(2, "0")
+        + String(d.getDate()).padStart(2, "0");
+      a.href = URL.createObjectURL(blob);
+      a.download = "qdii-watchlist-" + stamp + ".txt";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      toast("已导出 " + watchlist.length + " 只基金");
+    }
+
+    function parseImportText(text) {
+      const codes = [];
+      const seen = new Set();
+      String(text || "").split(/\r?\n/).forEach((line) => {
+        const s = line.trim();
+        if (!s || s.startsWith("#")) return;
+        // 支持: 016664 名称 | 016664,名称 | 016664\t名称 | 仅代码
+        let m = s.match(/^(\d{6})\b/);
+        if (!m) m = s.match(/(?:^|[,;\s])(\d{6})(?:$|[,;\s])/);
+        if (!m) return;
+        const code = m[1];
+        if (seen.has(code)) return;
+        seen.add(code);
+        codes.push(code);
+      });
+      return codes;
+    }
+
+    async function importWatchlistFromFile(file) {
+      if (!file) return;
+      let text = "";
+      try {
+        text = await file.text();
+      } catch (e) {
+        toast("读取文件失败");
+        return;
+      }
+      const codes = parseImportText(text);
+      if (!codes.length) {
+        toast("文件中未识别到基金代码");
+        return;
+      }
+      if (!confirm("识别到 " + codes.length + " 只基金，是否导入？")) {
+        toast("已取消导入");
+        return;
+      }
+      const replace = confirm(
+        "导入方式：\n\n"
+        + "确定 = 替换当前自选（适合换设备）\n"
+        + "取消 = 合并到当前自选（跳过已有）"
+      );
+      if (replace) {
+        watchlist = codes;
+        saveWatchlist(watchlist);
+        toast("已替换为 " + codes.length + " 只");
+      } else {
+        let added = 0;
+        codes.forEach((c) => {
+          if (!watchlist.includes(c)) {
+            watchlist.push(c);
+            added += 1;
+          }
+        });
+        saveWatchlist(watchlist);
+        toast(added ? ("合并完成，新增 " + added + " 只") : "合并完成，无新增（均已在自选中）");
+      }
+      await refreshAll(true);
     }
 
     let watchlist = loadWatchlist();
@@ -906,6 +995,13 @@
       if (e.key === "Enter") $("addBtn").click();
     });
     $("refreshBtn").addEventListener("click", () => refreshAll(true));
+    $("exportBtn").addEventListener("click", () => exportWatchlistFile());
+    $("importBtn").addEventListener("click", () => $("importFile").click());
+    $("importFile").addEventListener("change", async (ev) => {
+      const file = ev.target.files && ev.target.files[0];
+      ev.target.value = "";
+      await importWatchlistFromFile(file);
+    });
 
     $("sortBar").addEventListener("click", (ev) => {
       const btn = ev.target.closest("button[data-sort]");
