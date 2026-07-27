@@ -382,7 +382,222 @@
       color: #aaa;
       font-size: 11px;
     }
-  </style>
+  
+    /* ── Tabs ── */
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: 0 6px 16px rgba(251, 192, 45, 0.06);
+    }
+    .tab-btn {
+      flex: 1;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .15s ease;
+      font-family: inherit;
+    }
+    .tab-btn:hover { color: var(--secondary); background: #fffaf0; }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #000;
+      border-color: #f9a825;
+      box-shadow: 0 4px 12px rgba(251, 192, 45, 0.28);
+    }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Radar ── */
+    .radar-status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    @media (min-width: 520px) {
+      .radar-status-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    .stat-box {
+      background: #fffaf0;
+      border: 1px solid #ffe082;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .stat-box .k {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .stat-box .v {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--secondary);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.25;
+      word-break: break-all;
+    }
+    .stat-box .v.sm { font-size: 12px; font-weight: 700; }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid #ffe082;
+      background: #fff7da;
+      color: #8a6d1f;
+      font-variant-numeric: tabular-nums;
+    }
+    .chip.core {
+      background: #fff3cd;
+      border-color: #f9a825;
+      color: #7a5a00;
+    }
+    .chip.csp {
+      background: #eef6ff;
+      border-color: #b6d4fe;
+      color: #0b5cad;
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--secondary);
+    }
+    .section-title .hint {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .event-list { display: flex; flex-direction: column; gap: 8px; }
+    .event-item {
+      border: 1px solid #fff3e0;
+      background: #fffdf8;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .event-item .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .event-tag {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+    .event-tag.e1 {
+      color: #206c39;
+      background: #ecfff1;
+      border-color: #b7e4c7;
+    }
+    .event-tag.e2 {
+      color: #0b5cad;
+      background: #eef6ff;
+      border-color: #b6d4fe;
+    }
+    .event-tag.e3 {
+      color: #a34a2c;
+      background: #fff3f0;
+      border-color: #ffd2c7;
+    }
+    .event-item .title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--secondary);
+      line-height: 1.4;
+    }
+    .event-item .meta {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .score-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      background: #fff7da;
+      border: 1px solid #ffe082;
+      color: #8a6d1f;
+      font-variant-numeric: tabular-nums;
+    }
+    .score-pill.hi {
+      background: var(--primary);
+      border-color: #f9a825;
+      color: #000;
+      box-shadow: 0 4px 10px rgba(251, 192, 45, 0.28);
+    }
+    .match-line {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #5c4b16;
+      line-height: 1.55;
+    }
+    .match-line b { color: #9a6a00; }
+    .radar-note {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .filter-row .btn.active {
+      background: var(--primary);
+      color: #000;
+      border-color: #f9a825;
+      font-weight: 800;
+    }
+    .radar-pool-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .radar-pool-meta b {
+      color: var(--secondary);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+</style>
 </head>
 <body>
   <div class="app-container">
@@ -390,42 +605,103 @@
       <a class="home-link" href="https://guguji.icu" title="返回咕咕鸡大作战主页">← 返回主页</a>
       <h1>🐤 QD鸡</h1>
       <div class="sub">
-        跟踪基金「申购状态 + 单日累计申购上限」（东财口径）。状态/限额变化会记录时间线。</div>
-    </div>
-
-    <div class="card toolbar">
-      <input id="codeInput" type="text" inputmode="numeric" maxlength="6" placeholder="输入6位基金代码，如 016664" />
-      <button id="addBtn" class="btn" type="button">添加自选</button>
-      <button id="refreshBtn" class="btn secondary" type="button">刷新全部</button>
-      <button id="exportBtn" class="btn ghost" type="button" title="导出代码+名称，便于换设备">导出列表</button>
-      <button id="importBtn" class="btn ghost" type="button" title="从文本文件导入基金代码">导入列表</button>
-      <input id="importFile" type="file" accept=".txt,.csv,text/plain" hidden />
-    </div>
-
-    <div class="meta">
-      <span id="statusText" class="status-pill">准备就绪</span>
-      <div class="sort-bar" id="sortBar" title="可组合：A/C 分组 + 限额排序">
-        <div class="sort-row" data-sort-dim="limit">
-          <span class="lbl">限额</span>
-          <button type="button" class="btn secondary" data-limit-sort="asc">升序</button>
-          <button type="button" class="btn secondary" data-limit-sort="desc">降序</button>
-          <button type="button" class="btn secondary" data-limit-sort="default">默认</button>
-        </div>
-        <div class="sort-row" data-sort-dim="share">
-          <span class="lbl">份额</span>
-          <button type="button" class="btn secondary" data-share-sort="a-first">A在前</button>
-          <button type="button" class="btn secondary" data-share-sort="c-first">C在前</button>
-          <button type="button" class="btn secondary" data-share-sort="none">不限</button>
-        </div>
+        跟踪基金「申购状态 + 单日累计申购上限」（东财口径）。雷达页扫描 AI/半导体相关 QDII 观察池与额度事件。
       </div>
     </div>
 
-    <div id="list" class="list"></div>
-    <div id="empty" class="empty" hidden>还没有自选，先添加一只基金到 QD鸡 吧</div>
+    <div class="tab-bar" role="tablist" aria-label="QD鸡页签">
+      <button type="button" class="tab-btn active" id="tabWatch" data-tab="watch" role="tab" aria-selected="true">我的自选</button>
+      <button type="button" class="tab-btn" id="tabRadar" data-tab="radar" role="tab" aria-selected="false">雷达</button>
+    </div>
+
+    <div id="watchPanel" class="panel active" role="tabpanel">
+      <div class="card toolbar">
+        <input id="codeInput" type="text" inputmode="numeric" maxlength="6" placeholder="输入6位基金代码，如 016664" />
+        <button id="addBtn" class="btn" type="button">添加自选</button>
+        <button id="refreshBtn" class="btn secondary" type="button">刷新全部</button>
+        <button id="exportBtn" class="btn ghost" type="button" title="导出代码+名称，便于换设备">导出列表</button>
+        <button id="importBtn" class="btn ghost" type="button" title="从文本文件导入基金代码">导入列表</button>
+        <input id="importFile" type="file" accept=".txt,.csv,text/plain" hidden />
+      </div>
+
+      <div class="meta">
+        <span id="statusText" class="status-pill">准备就绪</span>
+        <div class="sort-bar" id="sortBar" title="可组合：A/C 分组 + 限额排序">
+          <div class="sort-row" data-sort-dim="limit">
+            <span class="lbl">限额</span>
+            <button type="button" class="btn secondary" data-limit-sort="asc">升序</button>
+            <button type="button" class="btn secondary" data-limit-sort="desc">降序</button>
+            <button type="button" class="btn secondary" data-limit-sort="default">默认</button>
+          </div>
+          <div class="sort-row" data-sort-dim="share">
+            <span class="lbl">份额</span>
+            <button type="button" class="btn secondary" data-share-sort="a-first">A在前</button>
+            <button type="button" class="btn secondary" data-share-sort="c-first">C在前</button>
+            <button type="button" class="btn secondary" data-share-sort="none">不限</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="list" class="list"></div>
+      <div id="empty" class="empty" hidden>还没有自选，先添加一只基金到 QD鸡 吧</div>
+    </div>
+
+    <div id="radarPanel" class="panel" role="tabpanel" hidden>
+      <div class="card toolbar">
+        <button id="radarRefreshBtn" class="btn" type="button">刷新雷达</button>
+        <button id="radarAddTopBtn" class="btn secondary" type="button" title="把当前列表前 N 只未在自选中的基金加入自选">批量加入前10</button>
+        <span id="radarStatusText" class="status-pill">雷达待命</span>
+      </div>
+
+      <div class="card" id="radarStatusCard">
+        <div class="section-title">
+          <span>📡 扫描状态</span>
+          <span class="hint">公共市场扫描 · 非个人自选</span>
+        </div>
+        <div class="radar-status-grid" id="radarStats">
+          <div class="stat-box"><span class="k">观察池</span><span class="v" id="stPool">-</span></div>
+          <div class="stat-box"><span class="k">主题宇宙 U1</span><span class="v" id="stUniverse">-</span></div>
+          <div class="stat-box"><span class="k">事件总数</span><span class="v" id="stEvents">-</span></div>
+          <div class="stat-box"><span class="k">最近扫描</span><span class="v sm" id="stLastRun">-</span></div>
+        </div>
+        <div class="radar-note" id="radarNote">加载中…</div>
+        <div class="chips" id="radarTargets"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">
+          <span>⚡ 近 7 日事件</span>
+          <span class="hint">E1放宽 · E2入池 · E3收紧</span>
+        </div>
+        <div class="filter-row" id="eventFilter">
+          <button type="button" class="btn secondary active" data-ev="all">全部</button>
+          <button type="button" class="btn secondary" data-ev="E1_quota_loosen">E1 放宽</button>
+          <button type="button" class="btn secondary" data-ev="E2_new_pool">E2 入池</button>
+          <button type="button" class="btn secondary" data-ev="E3_quota_tighten">E3 收紧</button>
+        </div>
+        <div id="radarEvents" class="event-list"></div>
+        <div id="radarEventsEmpty" class="empty" hidden>近 7 日暂无事件</div>
+      </div>
+
+      <div class="card" style="padding-bottom:10px">
+        <div class="section-title">
+          <span>🎯 观察池</span>
+          <span class="hint" id="radarPoolHint">按相关度分数排序</span>
+        </div>
+        <div class="filter-row" id="poolFilter">
+          <button type="button" class="btn secondary active" data-pool="all">全部</button>
+          <button type="button" class="btn secondary" data-pool="buyable">可申购</button>
+          <button type="button" class="btn secondary" data-pool="limit">有限额</button>
+          <button type="button" class="btn secondary" data-pool="paused">暂停</button>
+        </div>
+      </div>
+      <div id="radarPool" class="list"></div>
+      <div id="radarPoolEmpty" class="empty" hidden>观察池暂无数据（后端未扫描或接口未部署）</div>
+    </div>
 
     <div class="footer">
-      数据源：东方财富 · 缓存约 60 秒<br/>
-      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.11
+      数据源：东方财富 · 缓存约 60 秒 · 雷达为服务器扫描结果<br/>
+      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.12
     </div>
   </div>
   <div id="toast" class="toast"></div>
@@ -435,6 +711,11 @@
       ? "http://127.0.0.1:5000"
       : "https://ocr.guguji.icu";
     const STORAGE_KEY = "qdii_watchlist_v1";
+    const RADAR_EVENT_LABEL = {
+      E1_quota_loosen: { short: "E1 放宽", cls: "e1" },
+      E2_new_pool: { short: "E2 入池", cls: "e2" },
+      E3_quota_tighten: { short: "E3 收紧", cls: "e3" },
+    };
     const DEFAULT_CODES = ["016664", "539002"];
 
     const $ = (id) => document.getElementById(id);
@@ -559,6 +840,14 @@
     }
 
     let watchlist = loadWatchlist();
+    let currentTab = "watch";
+    let radarLoaded = false;
+    let radarLoading = false;
+    let radarStatus = null;
+    let radarEvents = [];
+    let radarPool = [];
+    let radarEventFilter = "all";
+    let radarPoolFilter = "all";
     const historyOpen = new Set();
     const SORT_KEY = "qdii_sort_v2";
     let lastItems = [];
@@ -1112,11 +1401,372 @@
       toast(parts.length ? ("已排序：" + parts.join(" + ")) : "已恢复默认顺序");
     });
 
+
+    // --- Radar tab ---
+    function shortTime(iso) {
+      if (!iso) return "-";
+      const s = String(iso).replace("T", " ");
+      const m = s.match(/(\d{4}-)?(\d{2}-\d{2}[ T]\d{2}:\d{2})/);
+      return m ? m[2].replace("T", " ") : s.slice(0, 16);
+    }
+
+    function formatMatched(matched) {
+      const arr = Array.isArray(matched) ? matched : [];
+      if (!arr.length) return "";
+      const top = arr.slice(0, 6).map((m) => {
+        const name = m.name || m.id || "?";
+        const pct = m.pct != null ? Number(m.pct).toFixed(1) + "%" : "";
+        return escapeHtml(name) + (pct ? " " + pct : "");
+      });
+      const more = arr.length > 6 ? (" \u7b49" + arr.length + "\u53ea") : "";
+      return `<div class="match-line"><b>\u5339\u914d\u6807\u7684</b> ${top.join(" \xb7 ")}${more}</div>`;
+    }
+
+    function eventLabel(type) {
+      return RADAR_EVENT_LABEL[type] || { short: type || "\u4e8b\u4ef6", cls: "e2" };
+    }
+
+    function switchTab(tab, pushHash = true) {
+      currentTab = tab === "radar" ? "radar" : "watch";
+      const watchPanel = $("watchPanel");
+      const radarPanel = $("radarPanel");
+      const tabWatch = $("tabWatch");
+      const tabRadar = $("tabRadar");
+      const isWatch = currentTab === "watch";
+      watchPanel.classList.toggle("active", isWatch);
+      radarPanel.classList.toggle("active", !isWatch);
+      watchPanel.hidden = !isWatch;
+      radarPanel.hidden = isWatch;
+      tabWatch.classList.toggle("active", isWatch);
+      tabRadar.classList.toggle("active", !isWatch);
+      tabWatch.setAttribute("aria-selected", isWatch ? "true" : "false");
+      tabRadar.setAttribute("aria-selected", isWatch ? "false" : "true");
+      if (pushHash) {
+        const want = isWatch ? "#watch" : "#radar";
+        if (location.hash !== want) history.replaceState(null, "", want);
+      }
+      if (!isWatch && !radarLoaded && !radarLoading) loadRadar(false);
+      if (isWatch && watchlist.length && !(lastItems && lastItems.length)) refreshAll(false);
+    }
+
+    function setRadarStatus(msg, kind) {
+      const el = $("radarStatusText");
+      el.textContent = msg;
+      el.className = "status-pill" + (kind ? " " + kind : "");
+    }
+
+    async function fetchRadarJson(path) {
+      const res = await fetchWithTimeout(`${API_BASE}${path}`, { cache: "no-store" }, 20000);
+      if (res.status === 404) {
+        const err = new Error("\u96f7\u8fbe\u63a5\u53e3\u672a\u90e8\u7f72\uff08404\uff09");
+        err.code = "not_deployed";
+        throw err;
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (data && typeof data === "object" && !Array.isArray(data) && data.ok === false) {
+        throw new Error(data.error || "radar failed");
+      }
+      return data;
+    }
+
+    function unwrapList(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (!payload || typeof payload !== "object") return [];
+      if (Array.isArray(payload.items)) return payload.items;
+      if (Array.isArray(payload.pool)) return payload.pool;
+      if (Array.isArray(payload.events)) return payload.events;
+      if (Array.isArray(payload.data)) return payload.data;
+      return [];
+    }
+
+    function renderRadarStatus(st) {
+      radarStatus = st;
+      $("stPool").textContent = st && st.pool_count != null ? st.pool_count : "-";
+      $("stUniverse").textContent = st && st.universe_count != null ? st.universe_count : "-";
+      $("stEvents").textContent = st && st.events_count != null ? st.events_count : "-";
+      const runs = (st && st.last_runs) || [];
+      const last = runs[0];
+      $("stLastRun").textContent = last
+        ? `${shortTime(last.finished_at || last.started_at)} \xb7 ${last.run_type || ""}${last.ok === false ? " \xb7 \u5931\u8d25" : ""}`
+        : "\u5c1a\u65e0\u626b\u63cf";
+      const notes = [];
+      if (st && st.note) notes.push(st.note);
+      notes.push(st && st.push_enabled ? "\u63a8\u9001\uff1a\u5df2\u5f00\u542f" : "\u63a8\u9001\uff1a\u672a\u63a5\u5165\uff08\u4ec5\u540e\u53f0\u626b\u63cf\uff09");
+      if (st && st.score_threshold != null) notes.push("\u5165\u6c60\u9608\u503c \u2265 " + st.score_threshold);
+      if (st && st.time) notes.push("\u72b6\u6001\u65f6\u70b9 " + shortTime(st.time));
+      $("radarNote").textContent = notes.join(" \xb7 ");
+
+      const cores = (st && (st.core_targets || [])) || [];
+      const csps = (st && (st.csp_targets || st.satellite_targets || [])) || [];
+      const box = $("radarTargets");
+      const chips = [];
+      cores.forEach((id) => chips.push(`<span class="chip core" title="\u786c\u4ef6\u6838\u5fc3">${escapeHtml(id)}</span>`));
+      csps.forEach((id) => chips.push(`<span class="chip csp" title="CSP">${escapeHtml(id)}</span>`));
+      box.innerHTML = chips.length ? chips.join("") : `<span class="chip">\u76ee\u6807\u6807\u7684\u5f85\u540c\u6b65</span>`;
+    }
+
+    function renderRadarEvents() {
+      const box = $("radarEvents");
+      const empty = $("radarEventsEmpty");
+      box.innerHTML = "";
+      let rows = radarEvents.slice();
+      if (radarEventFilter !== "all") rows = rows.filter((e) => e.event_type === radarEventFilter);
+      empty.hidden = rows.length > 0;
+      if (!rows.length) {
+        empty.textContent = radarEvents.length
+          ? "\u8be5\u7c7b\u578b\u8fd1 7 \u65e5\u6682\u65e0\u4e8b\u4ef6"
+          : "\u8fd1 7 \u65e5\u6682\u65e0\u4e8b\u4ef6\uff08\u51b7\u542f\u52a8\u4e0d\u5237 E2 \u6d2a\u6c34\uff09";
+        return;
+      }
+      for (const ev of rows) {
+        const lab = eventLabel(ev.event_type);
+        const div = document.createElement("div");
+        div.className = "event-item";
+        const code = ev.code || "";
+        const name = ev.name || "";
+        const title = ev.title || lab.short;
+        const limBits = [];
+        if (ev.prev_limit_amount != null || ev.limit_amount != null) {
+          limBits.push(`\u9650\u989d ${ev.prev_limit_amount ?? "-"} \u2192 ${ev.limit_amount ?? "-"}`);
+        }
+        if (ev.prev_sgzt || ev.sgzt) {
+          limBits.push(`\u72b6\u6001 ${ev.prev_sgzt || "-"} \u2192 ${ev.sgzt || "-"}`);
+        }
+        const scoreBit = ev.score != null ? ` \xb7 \u5206 ${Number(ev.score).toFixed(1)}` : "";
+        div.innerHTML = `
+          <div class="top">
+            <div class="title">${escapeHtml(title)}</div>
+            <span class="event-tag ${lab.cls}">${escapeHtml(lab.short)}</span>
+          </div>
+          <div class="meta">
+            ${escapeHtml(code)}${name ? " \xb7 " + escapeHtml(name) : ""}
+            ${limBits.length ? " \xb7 " + escapeHtml(limBits.join(" \xb7 ")) : ""}
+            ${scoreBit}
+            <br/>${escapeHtml(shortTime(ev.created_at))}
+          </div>
+          <div class="actions">
+            ${code ? `<button type="button" class="btn secondary" data-radar-add="${escapeHtml(code)}">\u52a0\u5165\u81ea\u9009</button>` : ""}
+          </div>`;
+        box.appendChild(div);
+      }
+    }
+
+    function poolPassesFilter(item) {
+      const f = radarPoolFilter;
+      if (f === "all") return true;
+      const norm = item.sgzt_norm || "";
+      if (f === "buyable") return item.buyable === true || norm === "open" || norm === "limit";
+      if (f === "limit") {
+        return norm === "limit" || (
+          item.limit_amount != null && item.limit_amount > 0 && item.buyable !== false && norm !== "paused"
+        );
+      }
+      if (f === "paused") return norm === "paused" || item.buyable === false;
+      return true;
+    }
+
+    function renderRadarPool() {
+      const box = $("radarPool");
+      const empty = $("radarPoolEmpty");
+      box.innerHTML = "";
+      const rows = radarPool.filter(poolPassesFilter);
+      $("radarPoolHint").textContent = `\u5171 ${radarPool.length} \u53ea` + (
+        radarPoolFilter !== "all" ? ` \xb7 \u7b5b\u9009\u540e ${rows.length}` : " \xb7 \u6309\u76f8\u5173\u5ea6\u5206\u6570\u6392\u5e8f"
+      );
+      empty.hidden = rows.length > 0;
+      if (!rows.length) {
+        empty.textContent = radarPool.length
+          ? "\u5f53\u524d\u7b5b\u9009\u4e0b\u65e0\u57fa\u91d1"
+          : "\u89c2\u5bdf\u6c60\u6682\u65e0\u6570\u636e\uff08\u540e\u7aef\u672a\u626b\u63cf\u6216\u63a5\u53e3\u672a\u90e8\u7f72\uff09";
+        return;
+      }
+      for (const item of rows) {
+        const card = document.createElement("div");
+        card.className = "card";
+        const code = item.code || "";
+        const inWl = watchlist.includes(code);
+        const score = item.total_score != null ? Number(item.total_score) : null;
+        const scoreCls = score != null && score >= 60 ? "score-pill hi" : "score-pill";
+        const bc = badgeClass(item.sgzt_norm);
+        const badge = item.limit_text || badgeText({
+          sgzt_norm: item.sgzt_norm,
+          sgzt: item.sgzt,
+          limit_amount: item.limit_amount,
+          buyable: item.buyable,
+        });
+        const reason = item.force_watch ? "\u5f3a\u5236\u89c2\u5bdf" : (item.reason || "score");
+        card.innerHTML = `
+          <div class="row1">
+            <div style="min-width:0;flex:1">
+              <div class="name-line">
+                <span class="name">${escapeHtml(item.name || "\u672a\u77e5\u57fa\u91d1")}</span>
+              </div>
+              <div class="code">${escapeHtml(code)}${item.holdings_as_of ? " \xb7 \u6301\u4ed3\u622a\u81f3 " + escapeHtml(item.holdings_as_of) : ""}</div>
+              <div class="radar-pool-meta">
+                <span>\u540d\u79f0\u5206 <b>${item.name_score != null ? Number(item.name_score).toFixed(1) : "-"}</b></span>
+                <span>\u6301\u4ed3\u5206 <b>${item.holdings_score != null ? Number(item.holdings_score).toFixed(1) : "-"}</b></span>
+                <span>\u539f\u56e0 <b>${escapeHtml(reason)}</b></span>
+              </div>
+              ${formatMatched(item.matched)}
+              <div class="desc">\u6c60\u66f4\u65b0\uff1a${escapeHtml(shortTime(item.updated_at || item.added_at))}${item.quota_updated_at ? " \xb7 \u989d\u5ea6 " + escapeHtml(shortTime(item.quota_updated_at)) : ""}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+              <span class="${scoreCls}" title="\u76f8\u5173\u5ea6\u603b\u5206">${score != null ? score.toFixed(1) : "-"}</span>
+              <span class="badge ${bc}">${escapeHtml(badge || "-")}</span>
+            </div>
+          </div>
+          <div class="actions">
+            <button type="button" class="btn ${inWl ? "ghost" : "secondary"}" data-radar-add="${escapeHtml(code)}" ${inWl ? "disabled" : ""}>${inWl ? "\u5df2\u5728\u81ea\u9009" : "\u52a0\u5165\u81ea\u9009"}</button>
+            <button type="button" class="btn ghost" data-radar-copy="${escapeHtml(code)}">\u590d\u5236\u4ee3\u7801</button>
+          </div>`;
+        box.appendChild(card);
+      }
+    }
+
+    function renderRadarAll() {
+      if (radarStatus) renderRadarStatus(radarStatus);
+      renderRadarEvents();
+      renderRadarPool();
+    }
+
+    async function loadRadar(force = false) {
+      if (radarLoading) return;
+      if (radarLoaded && !force) {
+        renderRadarAll();
+        return;
+      }
+      radarLoading = true;
+      setRadarStatus("\u52a0\u8f7d\u4e2d\u2026");
+      try {
+        const [st, poolWrap, evWrap] = await Promise.all([
+          fetchRadarJson("/api/qdii/radar/status"),
+          fetchRadarJson("/api/qdii/radar/pool?limit=120"),
+          fetchRadarJson("/api/qdii/radar/events?days=7&limit=80"),
+        ]);
+        radarStatus = st;
+        radarPool = unwrapList(poolWrap);
+        radarEvents = unwrapList(evWrap);
+        radarLoaded = true;
+        renderRadarAll();
+        setRadarStatus(`\u5df2\u66f4\u65b0 \xb7 \u6c60 ${radarPool.length}`, "ok");
+      } catch (e) {
+        radarLoaded = false;
+        const msg = humanFetchError(e);
+        setRadarStatus(e.code === "not_deployed" ? "\u63a5\u53e3\u672a\u90e8\u7f72" : "\u52a0\u8f7d\u5931\u8d25", "warn");
+        $("radarNote").textContent = e.code === "not_deployed"
+          ? "\u7ebf\u4e0a ocr.guguji.icu \u5c1a\u672a\u90e8\u7f72\u96f7\u8fbe API\u3002\u672c\u5730\u540e\u7aef\u5df2\u5c31\u7eea\uff0c\u90e8\u7f72\u540e\u5237\u65b0\u5373\u53ef\u3002\u4e5f\u53ef\u5728 localhost \u8fde 127.0.0.1:5000 \u8c03\u8bd5\u3002"
+          : ("\u96f7\u8fbe\u52a0\u8f7d\u5931\u8d25\uff1a" + msg);
+        $("radarEvents").innerHTML = "";
+        $("radarPool").innerHTML = "";
+        $("radarEventsEmpty").hidden = false;
+        $("radarEventsEmpty").textContent = "\u4e8b\u4ef6\u4e0d\u53ef\u7528";
+        $("radarPoolEmpty").hidden = false;
+        $("radarPoolEmpty").textContent = e.code === "not_deployed"
+          ? "\u96f7\u8fbe\u63a5\u53e3\u672a\u90e8\u7f72\uff08404\uff09"
+          : ("\u52a0\u8f7d\u5931\u8d25\uff1a" + msg);
+        $("stPool").textContent = "-";
+        $("stUniverse").textContent = "-";
+        $("stEvents").textContent = "-";
+        $("stLastRun").textContent = "-";
+        toast(e.code === "not_deployed" ? "\u96f7\u8fbe API \u672a\u90e8\u7f72" : ("\u96f7\u8fbe\u5931\u8d25\uff1a" + msg));
+      } finally {
+        radarLoading = false;
+      }
+    }
+
+    function addCodesToWatchlist(codes) {
+      const list = (codes || []).map((c) => String(c || "").trim()).filter((c) => /^\d{6}$/.test(c));
+      if (!list.length) {
+        toast("\u6ca1\u6709\u53ef\u6dfb\u52a0\u7684\u4ee3\u7801");
+        return 0;
+      }
+      let added = 0;
+      let skipped = 0;
+      for (const code of list) {
+        if (watchlist.includes(code)) {
+          skipped += 1;
+          continue;
+        }
+        watchlist.unshift(code);
+        added += 1;
+      }
+      if (added) {
+        watchlist = [...new Set(watchlist)];
+        saveWatchlist(watchlist);
+      }
+      if (added && skipped) toast(`\u5df2\u52a0\u5165 ${added} \u53ea\uff0c\u8df3\u8fc7\u5df2\u6709 ${skipped} \u53ea`);
+      else if (added) toast(`\u5df2\u52a0\u5165\u81ea\u9009 ${added} \u53ea`);
+      else toast("\u5747\u5df2\u5728\u81ea\u9009\u4e2d");
+      if (currentTab === "radar") renderRadarPool();
+      if (added) refreshAll(currentTab === "watch");
+      return added;
+    }
+
+    function bindRadarUi() {
+      $("tabWatch").addEventListener("click", () => switchTab("watch"));
+      $("tabRadar").addEventListener("click", () => switchTab("radar"));
+      $("radarRefreshBtn").addEventListener("click", () => loadRadar(true));
+      $("radarAddTopBtn").addEventListener("click", () => {
+        const rows = radarPool.filter(poolPassesFilter).slice(0, 10).map((x) => x.code);
+        addCodesToWatchlist(rows);
+      });
+      $("eventFilter").addEventListener("click", (ev) => {
+        const btn = ev.target.closest("button[data-ev]");
+        if (!btn) return;
+        radarEventFilter = btn.dataset.ev || "all";
+        $("eventFilter").querySelectorAll("button[data-ev]").forEach((b) => b.classList.toggle("active", b === btn));
+        renderRadarEvents();
+      });
+      $("poolFilter").addEventListener("click", (ev) => {
+        const btn = ev.target.closest("button[data-pool]");
+        if (!btn) return;
+        radarPoolFilter = btn.dataset.pool || "all";
+        $("poolFilter").querySelectorAll("button[data-pool]").forEach((b) => b.classList.toggle("active", b === btn));
+        renderRadarPool();
+      });
+      $("radarPanel").addEventListener("click", async (ev) => {
+        const addBtn = ev.target.closest("[data-radar-add]");
+        const copyBtn = ev.target.closest("[data-radar-copy]");
+        if (addBtn) {
+          addCodesToWatchlist([addBtn.getAttribute("data-radar-add")]);
+          return;
+        }
+        if (copyBtn) {
+          const code = copyBtn.getAttribute("data-radar-copy") || "";
+          try {
+            await navigator.clipboard.writeText(code);
+            toast("\u5df2\u590d\u5236 " + code);
+          } catch (_) {
+            toast(code);
+          }
+        }
+      });
+      window.addEventListener("hashchange", () => {
+        const h = (location.hash || "").toLowerCase();
+        if (h === "#radar") switchTab("radar", false);
+        else if (h === "#watch" || h === "" || h === "#") switchTab("watch", false);
+      });
+    }
+
     // boot
+    bindRadarUi();
     syncSortButtons();
-    refreshAll(true);
-    // soft auto refresh every 3 min
-    setInterval(() => refreshAll(false), 180000);
+    const bootHash = (location.hash || "").toLowerCase();
+    if (bootHash === "#radar") {
+      switchTab("radar", false);
+    } else {
+      switchTab("watch", false);
+      refreshAll(true);
+    }
+    // soft auto refresh every 3 min (watchlist only when visible)
+    setInterval(() => {
+      if (currentTab === "watch") refreshAll(false);
+    }, 180000);
+    // radar soft refresh every 5 min when tab visible
+    setInterval(() => {
+      if (currentTab === "radar") loadRadar(true);
+    }, 300000);
   </script>
 </body>
 </html>
