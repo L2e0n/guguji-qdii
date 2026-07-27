@@ -690,7 +690,7 @@
         </div>
         <div class="filter-row" id="poolFilter">
           <button type="button" class="btn secondary active" data-pool="all">全部</button>
-          <button type="button" class="btn secondary" data-pool="buyable">可申购</button>
+          <button type="button" class="btn secondary" data-pool="open">开放</button>
           <button type="button" class="btn secondary" data-pool="limit">有限额</button>
           <button type="button" class="btn secondary" data-pool="paused">暂停</button>
         </div>
@@ -701,7 +701,7 @@
 
     <div class="footer">
       数据源：东方财富 · 缓存约 60 秒 · 雷达为服务器扫描结果<br/>
-      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.12
+      QD鸡 · qdii.guguji.icu · 估值同源 ji.guguji.icu · v0.1.13
     </div>
   </div>
   <div id="toast" class="toast"></div>
@@ -1555,14 +1555,11 @@
     function poolPassesFilter(item) {
       const f = radarPoolFilter;
       if (f === "all") return true;
-      const norm = item.sgzt_norm || "";
-      if (f === "buyable") return item.buyable === true || norm === "open" || norm === "limit";
-      if (f === "limit") {
-        return norm === "limit" || (
-          item.limit_amount != null && item.limit_amount > 0 && item.buyable !== false && norm !== "paused"
-        );
-      }
-      if (f === "paused") return norm === "paused" || item.buyable === false;
+      // 互斥：开放 / 有限额 / 暂停，按东财规范化状态划分，避免重叠
+      const norm = String(item.sgzt_norm || "").toLowerCase();
+      if (f === "open" || f === "buyable") return norm === "open";
+      if (f === "limit") return norm === "limit";
+      if (f === "paused") return norm === "paused";
       return true;
     }
 
